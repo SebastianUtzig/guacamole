@@ -5,22 +5,28 @@
 namespace gua{
 
 
-PhysicalGeometryNode::PhysicalGeometryNode(std::string const& name,
+PhysicalGeometryNode::PhysicalGeometryNode(/*std::string const& name,
 				 physics::Physics* physics,
                  GeometryNode::Configuration const& configuration,
-                 math::mat4 const& transform,
+                 math::mat4 const& transform,*/
+                 std::shared_ptr<GeometryNode> geom,
+                 physics::Physics* physics,
+				 std::shared_ptr<physics::CollisionShapeNode> cs,
                  float mass,
                  float friction,
-                 float restitution,
-				 std::shared_ptr<physics::CollisionShapeNode> cs)
-		: 	GeometryNode(name,configuration,transform),
+                 float restitution)
+		: 	//GeometryNode(name,configuration,transform),
+			Node(geom->get_name()+"_physical"),
 			rigid_body_(nullptr),
 			mass_(mass),
 			friction_(friction),
 			restitution_(restitution),
 			collision_shape_(cs),
-			physics_(physics)
-		{}
+			physics_(physics),
+			geometry_(geom)
+		{
+			add_child(geometry_);
+		}
 
 
 
@@ -138,6 +144,20 @@ PhysicalGeometryNode::update_physics_structure(){
 	make_collidable(false,false);
 	return make_collidable(true,false);
 }
+
+
+
+
+/* virtual */ void PhysicalGeometryNode::accept(NodeVisitor& visitor) {
+
+  visitor.visit(this);
+}//=???????????????????????????
+
+
+std::shared_ptr<Node> PhysicalGeometryNode::copy() const {
+  return std::make_shared<PhysicalGeometryNode>(geometry_,physics_,collision_shape_);
+}//=??????????????????????????
+
 
 
 

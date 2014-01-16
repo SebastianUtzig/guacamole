@@ -16,7 +16,7 @@
 namespace gua{
 	
 
-class GUA_DLL PhysicalGeometryNode: public GeometryNode{
+class GUA_DLL PhysicalGeometryNode: public Node{
 
   public:
 
@@ -29,14 +29,16 @@ class GUA_DLL PhysicalGeometryNode: public GeometryNode{
 
     PhysicalGeometryNode() {};
 
-  	PhysicalGeometryNode(std::string const& name,
+  	PhysicalGeometryNode(/*std::string const& name,
                  physics::Physics* physics,
                  GeometryNode::Configuration const& configuration = GeometryNode::Configuration(),
-                 math::mat4 const& transform = math::mat4::identity(),
+                 math::mat4 const& transform = math::mat4::identity(),*/
+                 std::shared_ptr<GeometryNode> ,
+                 physics::Physics* physics,
+                 std::shared_ptr<physics::CollisionShapeNode> cs = nullptr,
                  float mass = 0.5f,
                  float friction = 2.9f,
-                 float restitution = 0.3f,
-                 std::shared_ptr<physics::CollisionShapeNode> cs = nullptr);
+                 float restitution = 0.3f);
 
   	bool 	make_collidable(bool,bool warn_parent = true);
   	bool	is_collidable() const;
@@ -45,8 +47,13 @@ class GUA_DLL PhysicalGeometryNode: public GeometryNode{
     std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape() const;
 
 
+    /* virtual */ void accept(NodeVisitor&);
+
+
 
   private:
+
+    std::shared_ptr<Node> copy() const;
 
     void collect_collision_shapes(std::shared_ptr<Node>,std::list<std::pair<std::shared_ptr<Node>,math::mat4>>&)const;
     void warn_parent_physics(std::shared_ptr<Node>)const;
@@ -56,6 +63,7 @@ class GUA_DLL PhysicalGeometryNode: public GeometryNode{
     physics::Physics*                            physics_;
     std::shared_ptr<physics::RigidBodyNode>      rigid_body_;
   	std::shared_ptr<physics::CollisionShapeNode> collision_shape_;
+    std::shared_ptr<GeometryNode>                geometry_;
   	float				                                 mass_;
   	float				                                 friction_;
   	float				                                 restitution_;
