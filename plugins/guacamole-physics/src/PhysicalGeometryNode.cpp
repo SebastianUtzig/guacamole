@@ -25,7 +25,7 @@ PhysicalGeometryNode::PhysicalGeometryNode(std::string const& name,
 
 
 bool
-PhysicalGeometryNode::make_collidable(bool b_make_collidable){
+PhysicalGeometryNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 	if(b_make_collidable){
 
@@ -51,17 +51,18 @@ PhysicalGeometryNode::make_collidable(bool b_make_collidable){
 			}
 
 			physics_->add_rigid_body(rigid_body_);
-			warn_parent_physics(get_parent_shared());
+			if(warn_parent)warn_parent_physics(get_parent_shared());
 		}
 		else{
-			make_collidable(false);
-			return make_collidable(true);
+			//make_collidable(false,false);
+			//return make_collidable(true,false);
+			return update_physics_structure();
 		}
 	}
-	else{
+	else if(rigid_body_){
 		physics_->remove_rigid_body(rigid_body_);
 		rigid_body_ = nullptr;
-		warn_parent_physics(get_parent_shared());
+		if(warn_parent)warn_parent_physics(get_parent_shared());
 	}
 
 	return true;
@@ -118,7 +119,9 @@ PhysicalGeometryNode::warn_parent_physics(std::shared_ptr<Node> parent)const{
 	if(dynamic_cast<PhysicalGeometryNode*>(parent.get())){
 		auto phys_node = dynamic_cast<PhysicalGeometryNode*>(parent.get());
 		if(phys_node->is_collidable()){
-			phys_node->update_physics_structure();
+			if(!phys_node->update_physics_structure()){
+				std::cout<<"Error in Update Phyics Structure of Parent!"<<std::endl;
+			}
 		}
 		else if(parent->get_parent_shared()){
 			warn_parent_physics(parent->get_parent_shared());
@@ -130,10 +133,10 @@ PhysicalGeometryNode::warn_parent_physics(std::shared_ptr<Node> parent)const{
 
 }
 
-void
+bool
 PhysicalGeometryNode::update_physics_structure(){
-	make_collidable(false);
-	make_collidable(true);
+	make_collidable(false,false);
+	return make_collidable(true,false);
 }
 
 

@@ -38,7 +38,7 @@ class GUA_DLL PhysicalGeometryNode: public GeometryNode{
                  float restitution = 0.3f,
                  std::shared_ptr<physics::CollisionShapeNode> cs = nullptr);
 
-  	bool 	make_collidable(bool);
+  	bool 	make_collidable(bool,bool warn_parent = true);
   	bool	is_collidable() const;
 
     void  set_world_transform(math::mat4 const&);
@@ -50,7 +50,7 @@ class GUA_DLL PhysicalGeometryNode: public GeometryNode{
 
     void collect_collision_shapes(std::shared_ptr<Node>,std::list<std::pair<std::shared_ptr<Node>,math::mat4>>&)const;
     void warn_parent_physics(std::shared_ptr<Node>)const;
-    void update_physics_structure();
+    bool update_physics_structure();
 
   	
     physics::Physics*                            physics_;
