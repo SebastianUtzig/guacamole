@@ -19,14 +19,48 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_INCLUDE_DATABASES_HPP
-#define GUA_INCLUDE_DATABASES_HPP
+// class header
+#include <gua/physics/GuaMotionState.hpp>
 
-// database headers
-#include <gua/databases/GeometryDatabase.hpp>
-#include <gua/databases/MaterialDatabase.hpp>
-#include <gua/databases/ShadingModelDatabase.hpp>
-#include <gua/databases/TextureDatabase.hpp>
-#include <gua/databases/Resources.hpp>
+namespace gua {
+namespace physics {
 
-#endif  // GUA_INCLUDE_DATABASES_HPP
+////////////////////////////////////////////////////////////////////////////////
+
+GuaMotionState::GuaMotionState(const btTransform& start_trans) : dirty(false) {
+  for (int i(0); i < 3; ++i)
+    transforms_[i] = new btTransform(start_trans);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+GuaMotionState::~GuaMotionState() {
+  for (int i(0); i < 3; ++i)
+    delete transforms_[i];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/* virtual */ void GuaMotionState::getWorldTransform(
+    btTransform& centerOfMassWorldTrans) const {
+  centerOfMassWorldTrans = *transforms_[0];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/* virtual */ void GuaMotionState::setWorldTransform(
+    const btTransform& centerOfMassWorldTrans) {
+  *transforms_[0] = centerOfMassWorldTrans;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/* virtual */ void GuaMotionState::latest_transform(
+    btTransform& centerOfMassWorldTrans) const {
+  centerOfMassWorldTrans = *transforms_[2];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+}
+}

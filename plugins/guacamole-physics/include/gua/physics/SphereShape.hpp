@@ -19,85 +19,59 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_DOT_GENERATOR_HPP
-#define GUA_DOT_GENERATOR_HPP
+#ifndef GUA_SPHERE_SHAPE_HPP
+#define GUA_SPHERE_SHAPE_HPP
 
-#include <map>
-#include <vector>
-#include <string>
-
-// guacamole header
+// guacamole headers
 #include <gua/platform.hpp>
-#include <gua/scenegraph/NodeVisitor.hpp>
+#include <gua/physics/CollisionShape.hpp>
+
+class btSphereShape;
 
 namespace gua {
-
-class SceneGraph;
-
-class Node;
-class GeometryNode;
-class PointLightNode;
-class ScreenNode;
-class SpotLightNode;
+namespace physics {
 
 /**
- * This class may be used to parse a path.
+ * A class representing a sphere-shaped collision shape.
+ *
+ * This class is a sphere primitive around the origin with the given radius.
+ * The sphere shape can be used for both static and dynamic rigid bodies.
  */
-class GUA_DLL DotGenerator : public NodeVisitor {
+class GUA_DLL SphereShape : public CollisionShape {
  public:
 
-  DotGenerator();
-  ~DotGenerator();
+  /**
+   * Constructor.
+   *
+   * Creates a new sphere shape with the given radius.
+   *
+   * \param radius The radius of the sphere.
+   */
+  SphereShape(float radius);
 
   /**
-   * Parses a graph.
+   * Destructor.
    *
-   * This function parses a SceneGraph and generates a graph in
-   * DOT-syntax. The graph then can be saved to a file with the
-   * save() method.
-   *
-   * \param graph       The graph to be parsed.
+   * Deletes the sphere shape and frees all associated data.
    */
-  void parse_graph(SceneGraph const* graph);
+  virtual ~SphereShape();
 
-  ///@{
-  /**
-   * Visiters for each Node type
-   */
-  /*virtual*/ void visit(Node* node);
-  /*virtual*/ void visit(TransformNode* cam);
-  /*virtual*/ void visit(GeometryNode* geometry);
-  /*virtual*/ void visit(VolumeNode* volume);
-  /*virtual*/ void visit(PointLightNode* pointlight);
-  /*virtual*/ void visit(ScreenNode* screen);
-  /*virtual*/ void visit(SpotLightNode* spotlight);
-  /*virtual*/ void visit(RayNode* ray);
-  /*virtual*/ void visit(TexturedQuadNode* node);
-   ///@}
+  float get_radius() const;
 
-  /**
-   * Saves a DOT-file
-   *
-   * This function saves the generated DOT-graph.
-   *
-   * \param path_to_file  The name of the file the DOT-graph will be saved to.
-   *                      The ending has to be .gv or .dot.
-   */
-  void save(std::string const& path_to_file) const;
+  void set_radius(float radius);
 
  private:
 
-  void pre_node_info(Node*);
-  void post_node_info(Node*, std::string const& fillcolor);
+  virtual void construct_dynamic(btCompoundShape* bullet_shape,
+                                 const btTransform& base_transform);
 
-  std::string parse_data_;
-  std::string graph_name_;
+  virtual btCollisionShape* construct_static();
 
-  std::map<int, int> added_nodes_;
-  std::size_t node_count_;
-
+  btSphereShape* shape_;
+  float radius_;
 };
 
 }
+}
 
-#endif  //DOT_GENERATOR_HPP
+#endif  // GUA_SPHERE_SHAPE_HPP

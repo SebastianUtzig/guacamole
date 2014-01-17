@@ -26,7 +26,6 @@
 #include <gua/databases.hpp>
 #include <gua/events.hpp>
 #include <gua/math.hpp>
-#include <gua/physics.hpp>
 #include <gua/renderer.hpp>
 #include <gua/scenegraph.hpp>
 #include <gua/utils.hpp>

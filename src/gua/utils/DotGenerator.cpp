@@ -32,8 +32,6 @@
 #include <gua/scenegraph/ScreenNode.hpp>
 #include <gua/scenegraph/RayNode.hpp>
 #include <gua/scenegraph/TexturedQuadNode.hpp>
-#include <gua/physics/RigidBodyNode.hpp>
-#include <gua/physics/CollisionShapeNode.hpp>
 #include <gua/utils/string_utils.hpp>
 
 // external headers
@@ -188,40 +186,6 @@ void DotGenerator::parse_graph(SceneGraph const* graph) {
     child->accept(*this);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/* virtual */ void DotGenerator::visit(physics::RigidBodyNode* rb) {
-  pre_node_info(rb);
-
-  std::string fillcolor("[fillcolor =");
-  fillcolor += " \"#FF2222\"";
-  parse_data_ += "| mass: " + string_utils::to_string<float>(rb->mass());
-  parse_data_ +=
-      "| friction: " + string_utils::to_string<float>(rb->friction());
-  parse_data_ +=
-      "| restitution: " + string_utils::to_string<float>(rb->restitution());
-  fillcolor += "]";
-
-  post_node_info(rb, fillcolor);
-
-  for (auto child : rb->children_)
-    child->accept(*this);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/* virtual */ void DotGenerator::visit(physics::CollisionShapeNode* shape) {
-  pre_node_info(shape);
-
-  std::string fillcolor("[fillcolor =");
-  fillcolor += " \"#AAFFAA\"";
-  if (shape->data.get_shape() != "")
-    parse_data_ += "| shape: " + shape->data.get_shape();
-  fillcolor += "]";
-
-  post_node_info(shape, fillcolor);
-
-  for (auto child : shape->children_)
-    child->accept(*this);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 /* virtual */ void DotGenerator::visit(TexturedQuadNode* node) {

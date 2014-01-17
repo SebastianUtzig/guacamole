@@ -19,14 +19,30 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_INCLUDE_DATABASES_HPP
-#define GUA_INCLUDE_DATABASES_HPP
+#ifndef GUA_INCLUDE_PHYSICS_HPP
+#define GUA_INCLUDE_PHYSICS_HPP
 
-// database headers
-#include <gua/databases/GeometryDatabase.hpp>
-#include <gua/databases/MaterialDatabase.hpp>
-#include <gua/databases/ShadingModelDatabase.hpp>
-#include <gua/databases/TextureDatabase.hpp>
-#include <gua/databases/Resources.hpp>
+// main include
+#include <gua/physics/Physics.hpp>
 
-#endif  // GUA_INCLUDE_DATABASES_HPP
+// scenegraph nodes
+#include <gua/physics/CollisionShapeNode.hpp>
+#include <gua/physics/RigidBodyNode.hpp>
+
+#include <gua/physics/CollisionShapeDatabase.hpp>
+
+// collision shapes
+#include <gua/physics/BoxShape.hpp>
+#include <gua/physics/ConvexHullShape.hpp>
+#include <gua/physics/CylinderShape.hpp>
+#include <gua/physics/PlaneShape.hpp>
+#include <gua/physics/SphereShape.hpp>
+#include <gua/physics/TriangleMeshShape.hpp>
+
+// constraints
+#include <gua/physics/FixedConstraint.hpp>
+#include <gua/physics/HingeConstraint.hpp>
+#include <gua/physics/Point2PointConstraint.hpp>
+#include <gua/physics/SliderConstraint.hpp>
+
+#endif  // GUA_INCLUDE_PHYSICS_HPP

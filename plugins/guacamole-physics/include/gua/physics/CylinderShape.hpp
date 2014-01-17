@@ -19,85 +19,63 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_DOT_GENERATOR_HPP
-#define GUA_DOT_GENERATOR_HPP
+#ifndef GUA_CYLINDER_SHAPE_HPP
+#define GUA_CYLINDER_SHAPE_HPP
 
-#include <map>
-#include <vector>
-#include <string>
-
-// guacamole header
+// guacamole headers
 #include <gua/platform.hpp>
-#include <gua/scenegraph/NodeVisitor.hpp>
+#include <gua/physics/CollisionShape.hpp>
+#include <gua/physics/PhysicsUtils.hpp>
+
+class btCylinderShape;
 
 namespace gua {
-
-class SceneGraph;
-
-class Node;
-class GeometryNode;
-class PointLightNode;
-class ScreenNode;
-class SpotLightNode;
+namespace physics {
 
 /**
- * This class may be used to parse a path.
+ * A class representing a cylinder-shaped collision shape.
+ *
+ * This class is a cylinder primitive around the origin, its central axis
+ * aligned with Y axis of given half-extents vector.
+ * The cylinder shape can be used for both static and dynamic rigid bodies.
  */
-class GUA_DLL DotGenerator : public NodeVisitor {
+class GUA_DLL CylinderShape : public CollisionShape {
  public:
 
-  DotGenerator();
-  ~DotGenerator();
+  /**
+   * Constructor.
+   *
+   * Creates a new cylinder shape with the given vector containg half extents
+   * for each axis.
+   *
+   * \param vec The vector with the half-extents. Y is the central axis of
+   *            the cylinder
+   */
+  CylinderShape(const math::vec3& half_extents);
 
   /**
-   * Parses a graph.
+   * Destructor.
    *
-   * This function parses a SceneGraph and generates a graph in
-   * DOT-syntax. The graph then can be saved to a file with the
-   * save() method.
-   *
-   * \param graph       The graph to be parsed.
+   * Deletes the cylinder shape and frees all associated data.
    */
-  void parse_graph(SceneGraph const* graph);
+  virtual ~CylinderShape();
 
-  ///@{
-  /**
-   * Visiters for each Node type
-   */
-  /*virtual*/ void visit(Node* node);
-  /*virtual*/ void visit(TransformNode* cam);
-  /*virtual*/ void visit(GeometryNode* geometry);
-  /*virtual*/ void visit(VolumeNode* volume);
-  /*virtual*/ void visit(PointLightNode* pointlight);
-  /*virtual*/ void visit(ScreenNode* screen);
-  /*virtual*/ void visit(SpotLightNode* spotlight);
-  /*virtual*/ void visit(RayNode* ray);
-  /*virtual*/ void visit(TexturedQuadNode* node);
-   ///@}
+  math::vec3 const& get_half_extents() const;
 
-  /**
-   * Saves a DOT-file
-   *
-   * This function saves the generated DOT-graph.
-   *
-   * \param path_to_file  The name of the file the DOT-graph will be saved to.
-   *                      The ending has to be .gv or .dot.
-   */
-  void save(std::string const& path_to_file) const;
+  void set_half_extents(math::vec3 const& half_extents);
 
  private:
 
-  void pre_node_info(Node*);
-  void post_node_info(Node*, std::string const& fillcolor);
+  virtual void construct_dynamic(btCompoundShape* bullet_shape,
+                                 const btTransform& base_transform);
 
-  std::string parse_data_;
-  std::string graph_name_;
+  virtual btCollisionShape* construct_static();
 
-  std::map<int, int> added_nodes_;
-  std::size_t node_count_;
-
+  btCylinderShape* shape_;
+  math::vec3 half_extents_;
 };
 
 }
+}
 
-#endif  //DOT_GENERATOR_HPP
+#endif  // GUA_CYLINDER_SHAPE_HPP

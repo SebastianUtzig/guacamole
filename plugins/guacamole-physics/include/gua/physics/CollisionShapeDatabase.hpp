@@ -19,85 +19,46 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_DOT_GENERATOR_HPP
-#define GUA_DOT_GENERATOR_HPP
+#ifndef GUA_COLLISION_SHAPE_DATABASE_HPP
+#define GUA_COLLISION_SHAPE_DATABASE_HPP
 
-#include <map>
-#include <vector>
-#include <string>
-
-// guacamole header
+// guacamole headers
 #include <gua/platform.hpp>
-#include <gua/scenegraph/NodeVisitor.hpp>
+#include <gua/utils/Singleton.hpp>
+#include <gua/databases/Database.hpp>
+#include <gua/physics/CollisionShape.hpp>
 
 namespace gua {
-
-class SceneGraph;
-
-class Node;
-class GeometryNode;
-class PointLightNode;
-class ScreenNode;
-class SpotLightNode;
+namespace physics {
 
 /**
- * This class may be used to parse a path.
+ * A data base for collision shapes.
+ *
+ * This Database stores collision shapes that can be shared among rigid bodies.
+ * It can be accessed via string identifiers.
  */
-class GUA_DLL DotGenerator : public NodeVisitor {
+class GUA_DLL CollisionShapeDatabase : public Database<CollisionShape>,
+                               public Singleton<CollisionShapeDatabase> {
  public:
 
-  DotGenerator();
-  ~DotGenerator();
-
   /**
-   * Parses a graph.
+   * Adds a collision shape to the database.
    *
-   * This function parses a SceneGraph and generates a graph in
-   * DOT-syntax. The graph then can be saved to a file with the
-   * save() method.
-   *
-   * \param graph       The graph to be parsed.
+   * \param name  String identifier.
+   * \param shape A pointer to the collision shape.
    */
-  void parse_graph(SceneGraph const* graph);
+  static void add_shape(const std::string& name, CollisionShape* shape);
 
-  ///@{
-  /**
-   * Visiters for each Node type
-   */
-  /*virtual*/ void visit(Node* node);
-  /*virtual*/ void visit(TransformNode* cam);
-  /*virtual*/ void visit(GeometryNode* geometry);
-  /*virtual*/ void visit(VolumeNode* volume);
-  /*virtual*/ void visit(PointLightNode* pointlight);
-  /*virtual*/ void visit(ScreenNode* screen);
-  /*virtual*/ void visit(SpotLightNode* spotlight);
-  /*virtual*/ void visit(RayNode* ray);
-  /*virtual*/ void visit(TexturedQuadNode* node);
-   ///@}
-
-  /**
-   * Saves a DOT-file
-   *
-   * This function saves the generated DOT-graph.
-   *
-   * \param path_to_file  The name of the file the DOT-graph will be saved to.
-   *                      The ending has to be .gv or .dot.
-   */
-  void save(std::string const& path_to_file) const;
+  friend class Singleton<CollisionShapeDatabase>;
 
  private:
+  CollisionShapeDatabase() {}
 
-  void pre_node_info(Node*);
-  void post_node_info(Node*, std::string const& fillcolor);
-
-  std::string parse_data_;
-  std::string graph_name_;
-
-  std::map<int, int> added_nodes_;
-  std::size_t node_count_;
+  ~CollisionShapeDatabase() {}
 
 };
 
 }
+}
 
-#endif  //DOT_GENERATOR_HPP
+#endif  // GUA_COLLISION_SHAPE_DATABASE_HPP

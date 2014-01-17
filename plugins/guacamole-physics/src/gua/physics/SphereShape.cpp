@@ -19,14 +19,61 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_INCLUDE_DATABASES_HPP
-#define GUA_INCLUDE_DATABASES_HPP
+// class header
+#include <gua/physics/SphereShape.hpp>
 
-// database headers
-#include <gua/databases/GeometryDatabase.hpp>
-#include <gua/databases/MaterialDatabase.hpp>
-#include <gua/databases/ShadingModelDatabase.hpp>
-#include <gua/databases/TextureDatabase.hpp>
-#include <gua/databases/Resources.hpp>
+// external headers
+#include <BulletCollision/CollisionShapes/btCompoundShape.h>
+#include <BulletCollision/CollisionShapes/btSphereShape.h>
 
-#endif  // GUA_INCLUDE_DATABASES_HPP
+namespace gua {
+namespace physics {
+
+////////////////////////////////////////////////////////////////////////////////
+
+SphereShape::SphereShape(float radius)
+  : CollisionShape(true, true, true),
+    radius_(radius) {
+  shape_ = new btSphereShape(radius_);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+SphereShape::~SphereShape() { delete shape_; }
+
+////////////////////////////////////////////////////////////////////////////////
+
+float
+SphereShape::get_radius() const {
+  return radius_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void
+SphereShape::set_radius(float radius) {
+  radius_ = radius;
+
+  if (shape_)
+    delete shape_;
+  shape_ = new btSphereShape(radius_);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/* virtual */ void SphereShape::construct_dynamic(
+    btCompoundShape* bullet_shape,
+    const btTransform& base_transform) {
+  bullet_shape->addChildShape(base_transform, shape_);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/* virtual */ btCollisionShape* SphereShape::construct_static() {
+  return shape_;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+}
+}

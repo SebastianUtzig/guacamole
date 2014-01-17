@@ -19,14 +19,7 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_INCLUDE_DATABASES_HPP
-#define GUA_INCLUDE_DATABASES_HPP
+// class header
+#include <gua/physics/CollisionShape.hpp>
 
-// database headers
-#include <gua/databases/GeometryDatabase.hpp>
-#include <gua/databases/MaterialDatabase.hpp>
-#include <gua/databases/ShadingModelDatabase.hpp>
-#include <gua/databases/TextureDatabase.hpp>
-#include <gua/databases/Resources.hpp>
-
-#endif  // GUA_INCLUDE_DATABASES_HPP
+namespace gua {}

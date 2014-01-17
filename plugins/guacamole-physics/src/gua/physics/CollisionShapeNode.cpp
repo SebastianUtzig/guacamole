@@ -19,14 +19,40 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_INCLUDE_DATABASES_HPP
-#define GUA_INCLUDE_DATABASES_HPP
+// class header
+#include <gua/physics/CollisionShapeNode.hpp>
 
-// database headers
-#include <gua/databases/GeometryDatabase.hpp>
-#include <gua/databases/MaterialDatabase.hpp>
-#include <gua/databases/ShadingModelDatabase.hpp>
-#include <gua/databases/TextureDatabase.hpp>
-#include <gua/databases/Resources.hpp>
+// guacamole headers
+#include <gua/scenegraph/TransformNode.hpp>
+#include <gua/scenegraph/NodeVisitor.hpp>
 
-#endif  // GUA_INCLUDE_DATABASES_HPP
+namespace gua {
+namespace physics {
+
+////////////////////////////////////////////////////////////////////////////////
+
+CollisionShapeNode::CollisionShapeNode(const std::string& name,
+                                       const math::mat4& transform)
+    : Node(name, transform) {}
+
+////////////////////////////////////////////////////////////////////////////////
+
+CollisionShapeNode::~CollisionShapeNode() {}
+
+////////////////////////////////////////////////////////////////////////////////
+
+/* virtual */ void CollisionShapeNode::accept(NodeVisitor& visitor) {
+
+  visitor.visit(this);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+std::shared_ptr<Node> CollisionShapeNode::copy() const {
+  return std::make_shared<TransformNode>(get_name(), get_transform());
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+}
+}

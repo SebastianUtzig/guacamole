@@ -19,85 +19,72 @@
  *                                                                            *
  ******************************************************************************/
 
-#ifndef GUA_DOT_GENERATOR_HPP
-#define GUA_DOT_GENERATOR_HPP
+#ifndef GUA_PLANE_SHAPE_HPP
+#define GUA_PLANE_SHAPE_HPP
 
-#include <map>
-#include <vector>
-#include <string>
-
-// guacamole header
+// guacamole headers
 #include <gua/platform.hpp>
-#include <gua/scenegraph/NodeVisitor.hpp>
+#include <gua/physics/CollisionShape.hpp>
+#include <gua/math.hpp>
+
+class btStaticPlaneShape;
 
 namespace gua {
-
-class SceneGraph;
-
-class Node;
-class GeometryNode;
-class PointLightNode;
-class ScreenNode;
-class SpotLightNode;
+namespace physics {
 
 /**
- * This class may be used to parse a path.
+ * A class representing an infinite static collision plane.
+ *
+ * The plane shape can only be used for static rigid bodies.
  */
-class GUA_DLL DotGenerator : public NodeVisitor {
+class GUA_DLL PlaneShape : public CollisionShape {
  public:
 
-  DotGenerator();
-  ~DotGenerator();
+  /**
+   * Constructor.
+   *
+   * Creates a new plane shape with given normal vector components and
+   * the plane constant (the distance of the plane's origin).
+   *
+   * \param x_normal The plane normal for X axis.
+   * \param y_normal The plane normal for Y axis.
+   * \param z_normal The plane normal for Z axis.
+   * \param plane_constant The distance of the plane's origin.
+   */
+  PlaneShape(float x_normal,
+             float y_normal,
+             float z_normal,
+             float plane_constant);
 
   /**
-   * Parses a graph.
+   * Destructor.
    *
-   * This function parses a SceneGraph and generates a graph in
-   * DOT-syntax. The graph then can be saved to a file with the
-   * save() method.
-   *
-   * \param graph       The graph to be parsed.
+   * Deletes the plane shape and frees all associated data.
    */
-  void parse_graph(SceneGraph const* graph);
+  virtual ~PlaneShape();
 
-  ///@{
-  /**
-   * Visiters for each Node type
-   */
-  /*virtual*/ void visit(Node* node);
-  /*virtual*/ void visit(TransformNode* cam);
-  /*virtual*/ void visit(GeometryNode* geometry);
-  /*virtual*/ void visit(VolumeNode* volume);
-  /*virtual*/ void visit(PointLightNode* pointlight);
-  /*virtual*/ void visit(ScreenNode* screen);
-  /*virtual*/ void visit(SpotLightNode* spotlight);
-  /*virtual*/ void visit(RayNode* ray);
-  /*virtual*/ void visit(TexturedQuadNode* node);
-   ///@}
+  math::vec3 const& get_normal() const;
 
-  /**
-   * Saves a DOT-file
-   *
-   * This function saves the generated DOT-graph.
-   *
-   * \param path_to_file  The name of the file the DOT-graph will be saved to.
-   *                      The ending has to be .gv or .dot.
-   */
-  void save(std::string const& path_to_file) const;
+  void set_normal(math::vec3 const& normal);
+
+  float get_plane_constant() const;
+
+  void set_plane_constant(float plane_constant);
 
  private:
 
-  void pre_node_info(Node*);
-  void post_node_info(Node*, std::string const& fillcolor);
+  virtual void construct_dynamic(btCompoundShape* bullet_shape,
+                                 const btTransform& base_transform);
 
-  std::string parse_data_;
-  std::string graph_name_;
+  virtual btCollisionShape* construct_static();
 
-  std::map<int, int> added_nodes_;
-  std::size_t node_count_;
+  btStaticPlaneShape* shape_;
+  math::vec3 normal_;
+  float plane_constant_;
 
 };
 
 }
+}
 
-#endif  //DOT_GENERATOR_HPP
+#endif  // GUA_PLANE_SHAPE_HPP
