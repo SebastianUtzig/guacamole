@@ -1,11 +1,11 @@
 // class header
-#include <gua/physics/PhysicalGeometryNode.hpp>
+#include <gua/physics/PhysicalNode.hpp>
 
 
 namespace gua{
 
 
-PhysicalGeometryNode::PhysicalGeometryNode(/*std::string const& name,
+PhysicalNode::PhysicalNode(/*std::string const& name,
 				 physics::Physics* physics,
                  GeometryNode::Configuration const& configuration,
                  math::mat4 const& transform,*/
@@ -25,14 +25,13 @@ PhysicalGeometryNode::PhysicalGeometryNode(/*std::string const& name,
 			physics_(physics),
 			geometry_(geom)
 		{
-			std::cout<<get_name()<<std::endl;
 			add_child(geometry_);
 		}
 
 
 
 bool
-PhysicalGeometryNode::make_collidable(bool b_make_collidable,bool warn_parent){
+PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 	if(b_make_collidable){
 
@@ -51,12 +50,7 @@ PhysicalGeometryNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			auto collision_shapes = std::list<std::pair<std::shared_ptr<physics::CollisionShapeNode>,math::mat4>>();
 
 			collect_collision_shapes(this,collision_shapes);
-
-			std::cout<<get_name()<<std::endl;
 			//collision_shapes.push_back(std::make_pair<std::shared_ptr<physics::CollisionShapeNode>,math::mat4>(get_collision_shape(),get_world_transform()));
-
-			std::cout<<"make_collidable"<<std::endl;
-			std::cout<<"collision_shapes lenght "<<collision_shapes.size()<<std::endl;
 
 			for(auto cs : collision_shapes){
 				std::cout<<"add collision shape here!!!!!!"<<std::endl;
@@ -85,7 +79,7 @@ PhysicalGeometryNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 
 bool
-PhysicalGeometryNode::is_collidable()const{
+PhysicalNode::is_collidable()const{
 	if (rigid_body_){
 		return true;
 	}
@@ -94,7 +88,7 @@ PhysicalGeometryNode::is_collidable()const{
 
 
 void
-PhysicalGeometryNode::set_world_transform(math::mat4 const& transform){
+PhysicalNode::set_world_transform(math::mat4 const& transform){
 	auto parent = get_parent();
     set_transform(scm::math::inverse(parent->get_world_transform())* transform);
 }
@@ -102,16 +96,16 @@ PhysicalGeometryNode::set_world_transform(math::mat4 const& transform){
 
 
 std::shared_ptr<physics::CollisionShapeNode>
-PhysicalGeometryNode::get_collision_shape() const{
+PhysicalNode::get_collision_shape() const{
 	if (collision_shape_){return collision_shape_;}
 	else {return nullptr;}
 }
 
 
 void
-PhysicalGeometryNode::collect_collision_shapes(Node* node,std::list<std::pair<std::shared_ptr<physics::CollisionShapeNode>,math::mat4>>& collision_shapes)const{
-	if(dynamic_cast<PhysicalGeometryNode*>(node)){
-		auto phys_node = dynamic_cast<PhysicalGeometryNode*>(node);
+PhysicalNode::collect_collision_shapes(Node* node,std::list<std::pair<std::shared_ptr<physics::CollisionShapeNode>,math::mat4>>& collision_shapes)const{
+	auto phys_node = dynamic_cast<PhysicalNode*>(node);
+	if(phys_node){
 		if(!phys_node -> is_collidable()){
 			for(auto const& child : phys_node->get_children()){
 				collect_collision_shapes(&*child,collision_shapes);
@@ -129,9 +123,9 @@ PhysicalGeometryNode::collect_collision_shapes(Node* node,std::list<std::pair<st
 }
 
 void
-PhysicalGeometryNode::warn_parent_physics(std::shared_ptr<Node> const& parent)const{
-	if(std::dynamic_pointer_cast<PhysicalGeometryNode>(parent)){
-		std::shared_ptr<PhysicalGeometryNode> phys_node = std::dynamic_pointer_cast<gua::PhysicalGeometryNode>(parent);
+PhysicalNode::warn_parent_physics(std::shared_ptr<Node> const& parent)const{
+	if(std::dynamic_pointer_cast<PhysicalNode>(parent)){
+		std::shared_ptr<PhysicalNode> phys_node = std::dynamic_pointer_cast<gua::PhysicalNode>(parent);
 		if(phys_node->is_collidable()){
 			if(!phys_node->update_physics_structure()){
 				std::cout<<"Error in Update Phyics Structure of Parent!"<<std::endl;
@@ -148,25 +142,11 @@ PhysicalGeometryNode::warn_parent_physics(std::shared_ptr<Node> const& parent)co
 }
 
 bool
-PhysicalGeometryNode::update_physics_structure(){
+PhysicalNode::update_physics_structure(){
 	make_collidable(false,false);
 	return make_collidable(true,false);
 }
 
-
-
-
-/* virtual */ /*void PhysicalGeometryNode::accept(NodeVisitor& visitor) {
-
-  visitor.visit(this);
-}//=???????????????????????????
-
-
-std::shared_ptr<Node> PhysicalGeometryNode::copy() const {
-  return std::make_shared<PhysicalGeometryNode>(geometry_,physics_,collision_shape_);
-}//=??????????????????????????
-
-*/
 
 
 }

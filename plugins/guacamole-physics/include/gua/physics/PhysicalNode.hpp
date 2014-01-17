@@ -1,5 +1,5 @@
-#ifndef GUA_PHYSICAL_GEOMETRY_NODE_HPP
-#define GUA_PHYSICAL_GEOMETRY_NODE_HPP
+#ifndef GUA_PHYSICAL_NODE_HPP
+#define GUA_PHYSICAL_NODE_HPP
 
 
 // guacamole headers
@@ -16,7 +16,7 @@
 namespace gua{
 	
 
-class GUA_DLL PhysicalGeometryNode: public TransformNode{
+class GUA_DLL PhysicalNode: public TransformNode{
 
   public:
 
@@ -27,9 +27,9 @@ class GUA_DLL PhysicalGeometryNode: public TransformNode{
 
     //Configuration data;
 
-    PhysicalGeometryNode() {};
+    PhysicalNode() {};
 
-  	PhysicalGeometryNode(/*std::string const& name,
+  	PhysicalNode(/*std::string const& name,
                  physics::Physics* physics,
                  GeometryNode::Configuration const& configuration = GeometryNode::Configuration(),
                  math::mat4 const& transform = math::mat4::identity(),*/
@@ -77,4 +77,4 @@ class GUA_DLL PhysicalGeometryNode: public TransformNode{
 
 }
 
-#endif  // GUA_GEOMETRY_NODE_HPP
+#endif
