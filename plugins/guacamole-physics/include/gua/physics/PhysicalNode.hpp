@@ -69,6 +69,7 @@ class GUA_DLL PhysicalNode: public TransformNode{
   	float				                                 restitution_;
 
     math::vec3                                   scale_;
+    bool                                         set_scale_;
 
 
 
