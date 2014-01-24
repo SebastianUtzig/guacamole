@@ -46,6 +46,6 @@
 #include <gua/physics/SliderConstraint.hpp>
 
 // new interface
-#include <gua/physics/PhysicalGeometryNode.hpp>
+#include <gua/physics/PhysicalNode.hpp>
 
 #endif  // GUA_INCLUDE_PHYSICS_HPP

@@ -29,6 +29,9 @@
 #include <gua/physics/RigidBodyNode.hpp>
 #include <gua/utils/SpinLock.hpp>
 
+//#include <gua/physics/PhysicalNode.hpp>
+#include <../plugins/guacamole-physics/include/gua/physics.hpp>
+
 #include <btBulletDynamicsCommon.h>
 
 // external headers
@@ -54,7 +57,10 @@ class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
 class btSequentialImpulseConstraintSolver;
 
+
 namespace gua {
+//new:
+class PhysicalNode;
 namespace physics {
 
 // default simulation parameters
@@ -197,7 +203,8 @@ public:
      * \param body Scene graph's rigid body node.
      * \sa    add_constraint()
      */
-    void add_rigid_body(std::shared_ptr<RigidBodyNode> const& body);
+    //void add_rigid_body(std::shared_ptr<RigidBodyNode> const& body);
+    void add_rigid_body(std::pair<std::shared_ptr<RigidBodyNode>,gua::PhysicalNode*> const& body);
 
     /**
      * Adds new rigid body to the simulation with a custom collision group and
@@ -208,7 +215,10 @@ public:
      * \param mask Bitwise mask for collision filtering
      * \sa    add_constraint()
      */
-    void add_rigid_body(std::shared_ptr<RigidBodyNode> const& body,
+    /*void add_rigid_body(std::shared_ptr<RigidBodyNode> const& body,
+                        RigidBodyNode::CollisionFilterGroups const& group,
+                        RigidBodyNode::CollisionFilterGroups const& mask);*/
+    void add_rigid_body(std::pair<std::shared_ptr<RigidBodyNode>,gua::PhysicalNode*> const& body_pair,
                         RigidBodyNode::CollisionFilterGroups const& group,
                         RigidBodyNode::CollisionFilterGroups const& mask);
 
@@ -360,7 +370,8 @@ private:
     btDefaultCollisionConfiguration* collision_configuration_;
     btCollisionDispatcher* dispatcher_;
     btSequentialImpulseConstraintSolver* solver_;
-    std::vector<std::shared_ptr<RigidBodyNode>> rigid_bodies_;
+    //std::vector<std::shared_ptr<RigidBodyNode>> rigid_bodies_;
+    std::vector<std::pair<std::shared_ptr<RigidBodyNode>,PhysicalNode*>> rigid_bodies_;
     std::vector<Constraint*> constraints_;
 
     /// \todo Change this to std::atomic<float> after upgrade to GCC 4.7

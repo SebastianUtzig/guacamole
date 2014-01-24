@@ -23,7 +23,8 @@ PhysicalNode::PhysicalNode(/*std::string const& name,
 			restitution_(restitution),
 			collision_shape_(cs),
 			physics_(physics),
-			geometry_(geom)
+			geometry_(geom),
+			scale_(math::vec3(0.0,0.0,0.0))
 		{
 			add_child(geometry_);
 		}
@@ -43,7 +44,27 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 				return false;
 			}
 
-			rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,get_world_transform()));
+			//rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,get_world_transform()));
+			auto geom_world(geometry_->get_world_transform());
+
+			rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,geom_world));
+			
+			
+			if(mass_!=0.0 && length(scale_)==0.0){
+				std::cout<<"scale before "<<scale_<<std::endl;
+				auto geometry_transform = geometry_->get_world_transform();
+				//getScale solution from avango-gua
+				math::vec3 x_vec(geometry_transform[0], geometry_transform[1], geometry_transform[2]);
+			    math::vec3 y_vec(geometry_transform[4], geometry_transform[5], geometry_transform[6]);
+			    math::vec3 z_vec(geometry_transform[8], geometry_transform[9], geometry_transform[10]);
+			    scale_ = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+			    std::cout<<"scale after "<<scale_<<std::endl;
+
+			}
+			
+
+
+			//std::cout<<geometry_->get_world_transform()<<std::endl;
 
 			//rigid_body_->add_child(collision_shape_);
 
@@ -58,7 +79,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 				rigid_body_->add_child(cs.first);
 			}
 
-			physics_->add_rigid_body(rigid_body_);
+			physics_->add_rigid_body(std::make_pair(rigid_body_,this));
 			if(warn_parent)warn_parent_physics(get_parent_shared());
 		}
 		else{
@@ -89,8 +110,23 @@ PhysicalNode::is_collidable()const{
 
 void
 PhysicalNode::set_world_transform(math::mat4 const& transform){
+	//std::cout<<"transform "<<transform<<std::endl;
 	auto parent = get_parent();
-    set_transform(scm::math::inverse(parent->get_world_transform())* transform);
+	auto parent_transform = parent->get_world_transform();
+	//getScale solution from avango-gua
+	math::vec3 x_vec(parent_transform[0], parent_transform[1], parent_transform[2]);
+    math::vec3 y_vec(parent_transform[4], parent_transform[5], parent_transform[6]);
+    math::vec3 z_vec(parent_transform[8], parent_transform[9], parent_transform[10]);
+    auto scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+    //auto without_scale = parent->get_world_transform() * scm::math::inverse(scm::math::make_scale(scale));
+    //auto tmp_transform = scm::math::inverse(parent_transform)* transform;
+	//set_transform(scm::math::make_scale(scale) * tmp_transform);
+	//auto parent_translate = scm::math::make_translation(parent_transform[12],parent_transform[13],parent_transform[14]);
+    //set_transform(scm::math::inverse(parent_translate)* transform);
+
+    geometry_->set_transform(scm::math::inverse(parent_transform)* transform* scm::math::make_scale(scale_));
+    /*auto parent = get_parent();
+    set_transform(scm::math::inverse(parent->get_world_transform())*transform);*/
 }
 
 

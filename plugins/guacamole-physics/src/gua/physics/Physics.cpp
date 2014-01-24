@@ -107,7 +107,7 @@ Physics::~Physics() {
     while (constraints_.size())
         remove_constraint(constraints_[0]);
     while (rigid_bodies_.size())
-        remove_rigid_body(rigid_bodies_[0]);
+        remove_rigid_body(rigid_bodies_[0].first);
     delete dw_;
     delete solver_;
     delete collision_configuration_;
@@ -186,13 +186,13 @@ void Physics::synchronize(bool auto_start) {
         lock_guard<SpinLock> lk(motion_state_update_mutex_);
 
         for (auto rb : rigid_bodies_) {
-            rb->motion_state_->flip_reader();
+            rb.first->motion_state_->flip_reader();
         }
     }
 
     // traverse rigid body subgraphs in order to apply collision shapes
     for (auto& rb : rigid_bodies_) {
-        shape_visitor_.check(&*rb);
+        shape_visitor_.check(&*rb.first);
     }
 
     if (auto_start && is_stopped_.load())
@@ -201,42 +201,52 @@ void Physics::synchronize(bool auto_start) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Physics::add_rigid_body(std::shared_ptr<RigidBodyNode> const& body) {
-    if (body && std::find(rigid_bodies_.begin(), rigid_bodies_.end(), body) ==
+void Physics::add_rigid_body(std::pair<std::shared_ptr<RigidBodyNode>,gua::PhysicalNode*> const& body) {
+    if (body.first && body.second && std::find(rigid_bodies_.begin(), rigid_bodies_.end(), body) ==
                     rigid_bodies_.end()) {
         lock_guard<mutex> lk(simulation_mutex_);
-        dw_->addRigidBody(body->body_);
+        dw_->addRigidBody(body.first->body_);
         rigid_bodies_.push_back(body);
-        body->ph_ = this;
+        body.first->ph_ = this;
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void Physics::add_rigid_body(std::shared_ptr<RigidBodyNode> const& body,
+void Physics::add_rigid_body(std::pair<std::shared_ptr<RigidBodyNode>,gua::PhysicalNode*> const& body,
                             RigidBodyNode::CollisionFilterGroups const& group,
                             RigidBodyNode::CollisionFilterGroups const& mask) {
 
-    if (body && std::find(rigid_bodies_.begin(), rigid_bodies_.end(), body) ==
+    if (body.first && body.second && std::find(rigid_bodies_.begin(), rigid_bodies_.end(), body) ==
                     rigid_bodies_.end()) {
         lock_guard<mutex> lk(simulation_mutex_);
-        dw_->addRigidBody(body->body_,
+        dw_->addRigidBody(body.first->body_,
                           static_cast<btBroadphaseProxy::CollisionFilterGroups>(group),
                           static_cast<btBroadphaseProxy::CollisionFilterGroups>(mask));
         rigid_bodies_.push_back(body);
-        body->ph_ = this;
+        body.first->ph_ = this;
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void Physics::remove_rigid_body(std::shared_ptr<RigidBodyNode> const& body) {
-    auto i = std::find(rigid_bodies_.begin(), rigid_bodies_.end(), body);
+    /*auto i = std::find(rigid_bodies_.begin(), rigid_bodies_.end(), body);
     if (i != rigid_bodies_.end()) {
         lock_guard<mutex> lk(simulation_mutex_);
         dw_->removeRigidBody(body->body_);
-        (*i)->ph_ = nullptr;
+        (*i).first->ph_ = nullptr;
         rigid_bodies_.erase(i);
+    }*/
+    for (std::vector<std::pair<std::shared_ptr<RigidBodyNode>,PhysicalNode*>>::iterator pos = rigid_bodies_.begin();
+        pos != rigid_bodies_.end();++pos){
+            if(pos->first == body){
+                lock_guard<mutex> lk(simulation_mutex_);
+                dw_->removeRigidBody(body->body_);
+                pos->first->ph_ = nullptr;
+                rigid_bodies_.erase(pos);
+                return;
+            }
     }
 }
 
@@ -315,7 +325,11 @@ void Physics::simulate() {
             {
                 lock_guard<SpinLock> lk(motion_state_update_mutex_);
                 for (auto rb : rigid_bodies_) {
-                    rb->motion_state_->flip_writer();
+                    rb.first->motion_state_->flip_writer();
+                    //new:!!!!!!!
+                    //______________________________________________________
+                    rb.second->set_world_transform(rb.first->get_transform());
+                    //______________________________________________________
                 }
             }
         }
