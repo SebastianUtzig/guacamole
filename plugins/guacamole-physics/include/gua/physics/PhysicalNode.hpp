@@ -44,7 +44,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
   	bool	is_collidable() const;
 
     void  set_world_transform(math::mat4 const&);
-    std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape() const;
+    std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape();
+    std::shared_ptr<GeometryNode>  get_geometry()const;
 
 
     ///* virtual */ void accept(NodeVisitor&);
@@ -58,6 +59,7 @@ class GUA_DLL PhysicalNode: public TransformNode{
     void collect_collision_shapes(Node*,std::list<std::pair<std::shared_ptr<physics::CollisionShapeNode>,math::mat4>>&)const;
     void warn_parent_physics(std::shared_ptr<Node>const&)const;
     bool update_physics_structure();
+    void calculate_collision_shape(math::vec3 scale);
 
   	
     physics::Physics*                            physics_;

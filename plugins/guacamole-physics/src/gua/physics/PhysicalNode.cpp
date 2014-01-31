@@ -56,36 +56,10 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 
 			if (collision_shape_ == nullptr){
-				//TODO compute collision shape automatically here!
-				//std::cout<<"Missing CollisionShape in make_collidable()!!!"<<std::endl;
-				//return false;
-				std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
-				
-
-				std::string cs_name = geometry_->get_name()
-								+"automatic_collision_shape_"
-								+gua::string_utils::to_string(scale_.x)+"_"
-								+gua::string_utils::to_string(scale_.y)+"_"
-								+gua::string_utils::to_string(scale_.z);
-
-			
-				auto existing_cs = gua::physics::CollisionShapeDatabase::instance()->lookup(cs_name);
-				if(existing_cs == nullptr){
-					std::vector<std::string> geometry_list = std::vector<std::string>();
-					//geometry_list.push_back(geometry_->get_name());
-					geometry_list.push_back(geometry_->data.get_geometry());
-					auto cs = gua::physics::TriangleMeshShape::FromGeometry(geometry_list, true, true);
-					cs->set_scaling(scale_);
-					gua::physics::CollisionShapeDatabase::add_shape(cs_name, cs);
-
-				}
-
-  				
-
-  				std::shared_ptr<gua::physics::CollisionShapeNode> csn (new gua::physics::CollisionShapeNode(cs_name));
-  				csn->data.set_shape(cs_name);
-  				collision_shape_ = csn;
-				
+				calculate_collision_shape(scale_);
+			}
+			else{
+				collision_shape_->set_transform(math::mat4::identity());//reset possible transformations of other upper group nodes
 			}
 
 
@@ -113,11 +87,12 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			if(warn_parent)warn_parent_physics(get_parent_shared());
 
 
-			//std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
+			std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
 			for(auto cs : collision_shapes){
 				//std::cout<<"add collision shape here!!!!!!"<<std::endl;
 				//cs.first->set_transform(scm::math::inverse(get_world_transform()) * cs.second);
-				//cs.first->set_transform(scm::math::inverse(rigid_body_->get_transform()) * cs.second);//all other collision shapes in lower graph must be in rb coord.syst.
+				cs.first->set_transform(scm::math::inverse(rigid_body_->get_transform()) * cs.second);//all other collision shapes in lower graph must be in rb coord.syst.
+				//cs.first->set_transform(scm::math::inverse(geometry_->get_world_transform()) * cs.second);//all other collision shapes in lower graph must be in rb coord.syst.
 				//std::cout<<"rigid_body_ transform "<<rigid_body_->get_transform()<<std::endl;
 				//std::cout<<"collision shape transform "<<cs.first->get_transform()<<std::endl;
 				rigid_body_->add_child(cs.first);
@@ -175,12 +150,54 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
     set_transform(scm::math::inverse(parent->get_world_transform())*transform);*/
 }
 
+void
+PhysicalNode::calculate_collision_shape(math::vec3 scale){
+	
+	std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
+	
 
+	std::string cs_name = geometry_->get_name()
+					+"automatic_collision_shape_"
+					+gua::string_utils::to_string(scale_.x)+"_"
+					+gua::string_utils::to_string(scale_.y)+"_"
+					+gua::string_utils::to_string(scale_.z);
+
+
+	auto existing_cs = gua::physics::CollisionShapeDatabase::instance()->lookup(cs_name);
+	if(existing_cs == nullptr){
+		std::vector<std::string> geometry_list = std::vector<std::string>();
+		//geometry_list.push_back(geometry_->get_name());
+		geometry_list.push_back(geometry_->data.get_geometry());
+		auto cs = gua::physics::TriangleMeshShape::FromGeometry(geometry_list, true, true);
+		cs->set_scaling(scale_);
+		gua::physics::CollisionShapeDatabase::add_shape(cs_name, cs);
+
+	}	
+
+	std::shared_ptr<gua::physics::CollisionShapeNode> csn (new gua::physics::CollisionShapeNode(cs_name));
+	csn->data.set_shape(cs_name);
+	collision_shape_ = csn;
+
+}
 
 std::shared_ptr<physics::CollisionShapeNode>
-PhysicalNode::get_collision_shape() const{
+PhysicalNode::get_collision_shape(){
 	if (collision_shape_){return collision_shape_;}
-	else {return nullptr;}
+	else {
+		auto geom_world(geometry_->get_world_transform());
+		math::vec3 x_vec(geom_world[0], geom_world[1], geom_world[2]);
+	    math::vec3 y_vec(geom_world[4], geom_world[5], geom_world[6]);
+	    math::vec3 z_vec(geom_world[8], geom_world[9], geom_world[10]);
+	    scale_ = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+	    set_scale_ = true;
+		calculate_collision_shape(scale_);
+		return collision_shape_;
+	}
+}
+
+std::shared_ptr<GeometryNode>
+PhysicalNode::get_geometry()const{
+	return geometry_;
 }
 
 
@@ -189,14 +206,32 @@ PhysicalNode::collect_collision_shapes(Node* node,std::list<std::pair<std::share
 	auto phys_node = dynamic_cast<PhysicalNode*>(node);
 	if(phys_node){
 		if(!phys_node -> is_collidable()){
-			if(phys_node->get_collision_shape()){
-				auto cs = phys_node->get_collision_shape();
-				collision_shapes.push_back(std::make_pair(cs,cs->get_world_transform()));
+			auto cs = phys_node->get_collision_shape();
+			if(cs){	
+				
+				//collision_shapes.push_back(std::make_pair(cs,cs->get_world_transform()));
+				//getScale solution from avango-gua
+				auto transform = phys_node->get_geometry()->get_world_transform();
+				/*math::vec3 x_vec(transform[0], transform[1], transform[2]);
+			    math::vec3 y_vec(transform[4], transform[5], transform[6]);
+			    math::vec3 z_vec(transform[8], transform[9], transform[10]);
+			    auto scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+			    auto without_scale = scm::math::inverse(scm::math::make_scale(scale) * transform);*/
+
+				collision_shapes.push_back(std::make_pair(cs,transform));
+			}
+			else{
+				std::cout<<"no cs :(((("<<std::endl;
 			}
 			for(auto const& child : phys_node->get_children()){
 				collect_collision_shapes(&*child,collision_shapes);
 			}
 
+		}
+		else{
+			for(auto child : node->get_children()){
+				collect_collision_shapes(&*child,collision_shapes);
+			}
 		}
 	}
 	else{
