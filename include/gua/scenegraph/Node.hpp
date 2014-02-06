@@ -272,7 +272,7 @@ class GUA_DLL Node {
    * \return Node     The Node's parent.
    */
   inline Node* get_parent() const { return parent_; }
-  std::shared_ptr<Node> get_parent_shared() const;
+  std::shared_ptr<Node> get_self_shared() const;
 
   virtual inline math::BoundingBox<math::vec3> const& get_bounding_box() const {
       return bounding_box_;

@@ -232,7 +232,7 @@ std::string Node::get_path() const {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-std::shared_ptr<Node> Node::get_parent_shared() const {
+std::shared_ptr<Node> Node::get_self_shared() const {
     if (!parent_) {
         return nullptr;
     }
