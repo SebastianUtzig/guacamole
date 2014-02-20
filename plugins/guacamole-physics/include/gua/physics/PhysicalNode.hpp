@@ -49,6 +49,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     float get_mass()const;
 
+    /*virtual*/ void update_cache();
+
 
     ///* virtual */ void accept(NodeVisitor&);
 
@@ -58,10 +60,10 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     //std::shared_ptr<Node> copy() const;
 
-    void collect_collision_shapes(std::shared_ptr<gua::Node>,std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>>&)const;
+    void collect_collision_shapes(Node*,std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>>&)const;
     void warn_parent_physics(Node*)const;
     bool update_physics_structure();
-    void calculate_collision_shape(math::vec3 scale);
+    void calculate_collision_shape();
 
   	
     physics::Physics*                            physics_;
@@ -74,6 +76,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     math::vec3                                   scale_;
     bool                                         set_scale_;
+    math::mat4                                   geom_world_;
+    math::mat4                                   parent_world_;
 
 
 
