@@ -49,7 +49,7 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     float get_mass()const;
 
-    /*virtual*/ void update_cache();
+    ///*virtual*/ void update_cache();
 
 
     ///* virtual */ void accept(NodeVisitor&);
