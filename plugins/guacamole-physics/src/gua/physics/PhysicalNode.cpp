@@ -30,7 +30,7 @@ PhysicalNode::PhysicalNode(/*std::string const& name,
 			parent_world_(math::mat4::identity())
 		{
 			add_child(geometry_);
-			std::cout<<"geom_world_ : "<<geom_world_<<std::endl;
+			std::cout<<"geom_world_ newnewnewnewnew : "<<geom_world_<<std::endl;
 			//add_child(collision_shape_);
 			//geometry_->add_child(collision_shape_);
 		}
@@ -47,6 +47,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			//rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,get_world_transform()));
 			geom_world_ = geometry_->get_world_transform();
+			std::cout<<"set geom_world_ here!!!!!!!!!!!!!!!!! : "<<geom_world_<<std::endl;
 			parent_world_ = get_parent()->get_world_transform();
 
 
@@ -99,7 +100,11 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 				com = com / new_mass;
 
 				
-				set_transform(scm::math::make_translation(com));
+	//			set_transform(scm::math::make_translation(com));
+				auto parent = get_parent();
+				auto parent_transform = parent->get_world_transform();
+				set_transform(scm::math::inverse(parent_transform) * scm::math::make_translation(com));
+				std::cout<<"self transform: "<<scm::math::inverse(parent_transform) * scm::math::make_translation(com)<<std::endl;
 
 				rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com)));
 	
@@ -114,8 +119,8 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			    auto scale_world = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
 			    auto without_scale = get_world_transform() * scm::math::inverse(scm::math::make_scale(scale_world));*/
 				
-				geometry_->set_transform(scm::math::inverse(get_transform()) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
-				//geometry_->set_transform(scm::math::inverse(scm::math::make_translation(com)) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
+	//			geometry_->set_transform(scm::math::inverse(get_transform()) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
+				geometry_->set_transform(scm::math::inverse(scm::math::make_translation(com)) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
 				
 				//geometry_->set_transform(scm::math::inverse(get_world_transform()) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
 
@@ -187,9 +192,11 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 	auto parent_transform = parent->get_world_transform();
 
 	if(mass_ == 0){
-		//set_transform(scm::math::inverse(parent_transform)*transform * scm::math::make_scale(scale_));
+		set_transform(scm::math::inverse(parent_transform)*transform * scm::math::make_scale(scale_));
 	}
 	else{
+
+		
 
 		/*math::vec3 x_vec(parent_transform[0], parent_transform[1], parent_transform[2]);
 	    math::vec3 y_vec(parent_transform[4], parent_transform[5], parent_transform[6]);
@@ -218,11 +225,17 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 
 	//	geometry_->set_transform(scm::math::inverse(old_world) * delta * geom_world_);
 		//set_transform(scm::math::inverse(tmp_trans)*transform * scm::math::make_scale(scale_parent));
-	}
-
-    
-
+	} 
 }
+
+/*math::mat4
+PhysicalNode::get_world_transform()const{
+	if (parent_)
+        //return scm::math::inverse(parent_->get_world_transform()) * get_transform();
+        return parent_->get_world_transform() * get_transform();//original
+
+    return get_transform();
+}*/
 
 void
 PhysicalNode::calculate_collision_shape(){

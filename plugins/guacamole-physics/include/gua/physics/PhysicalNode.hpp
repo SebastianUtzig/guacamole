@@ -49,6 +49,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     float get_mass()const;
 
+    ///*virtual*/ math::mat4 get_world_transform() const;
+
     ///*virtual*/ void update_cache();
 
 
