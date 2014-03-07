@@ -26,11 +26,12 @@ PhysicalNode::PhysicalNode(/*std::string const& name,
 			geometry_(geom),
 			scale_(math::vec3(1.0,1.0,1.0)),
 			set_scale_(false),
-			geom_world_(math::mat4::identity()),
-			parent_world_(math::mat4::identity())
+			geom_world_(math::mat4::identity())/*,
+			parent_world_(math::mat4::identity()),
+			last_simulation_step_(math::mat4::identity())*/
 		{
 			add_child(geometry_);
-			std::cout<<"geom_world_ newnewnewnewnew : "<<geom_world_<<std::endl;
+			//std::cout<<"geom_world_ newnewnewnewnew : "<<geom_world_<<std::endl;
 			//add_child(collision_shape_);
 			//geometry_->add_child(collision_shape_);
 		}
@@ -47,8 +48,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			//rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,get_world_transform()));
 			geom_world_ = geometry_->get_world_transform();
-			std::cout<<"set geom_world_ here!!!!!!!!!!!!!!!!! : "<<geom_world_<<std::endl;
-			parent_world_ = get_parent()->get_world_transform();
+			//parent_world_ = get_parent()->get_world_transform();
 
 
 			if(/*mass_!=0.0 &&*/ set_scale_==false){
@@ -82,7 +82,8 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			//collision_shapes.push_back(std::make_pair<std::shared_ptr<physics::CollisionShapeNode>,math::mat4>(get_collision_shape(),get_collision_shape()->get_world_transform()));
 
 
-			
+	//		auto parent = get_parent();
+	//		auto parent_transform = parent->get_world_transform();
 			//rigidbody just consist of center of mass translation - offset in collisionshape and geometry
 			if(mass_ != 0){
 				//calculate new center of mass
@@ -99,14 +100,13 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 				com = com / new_mass;
 
+				rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com)));
 				
 	//			set_transform(scm::math::make_translation(com));
-				auto parent = get_parent();
-				auto parent_transform = parent->get_world_transform();
-				set_transform(scm::math::inverse(parent_transform) * scm::math::make_translation(com));
-				std::cout<<"self transform: "<<scm::math::inverse(parent_transform) * scm::math::make_translation(com)<<std::endl;
+	//			last_simulation_step_ = scm::math::make_translation(com);
+	//			set_transform(scm::math::inverse(parent_transform) * scm::math::make_translation(com));
+				set_transform(scm::math::make_translation(com));
 
-				rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com)));
 	
 				collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
 
@@ -129,9 +129,14 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			}
 			else{//static object can hold all transformations of upper geometry
-				set_transform(geom_world_);
 
 				rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,geom_world_ * scm::math::inverse(scm::math::make_scale(scale_))));
+
+	//			set_transform(geom_world_);
+	//			last_simulation_step_ = geom_world_;
+	//			set_transform(scm::math::inverse(parent_transform) * geom_world_);
+				set_transform(geom_world_);
+
 
 				collision_shape_->set_transform(math::mat4::identity());
 
@@ -142,11 +147,14 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			rigid_body_->add_child(collision_shape_);
 
-			if(warn_parent)warn_parent_physics(get_parent());
+//			if(warn_parent)warn_parent_physics(get_parent());
 
 
 			std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
 			for(auto cs : collision_shapes){
+
+				//std::cout<<"cs: "<<std::get<0>(cs)->get_name()<<std::endl;
+
 				//std::cout<<"add collision shape here!!!!!!"<<std::endl;
 				//cs.first->set_transform(scm::math::inverse(get_world_transform()) * cs.second);
 				std::get<0>(cs)->set_transform(scm::math::inverse(get_transform()) * std::get<1>(cs));//all other collision shapes in lower graph must be in rb coord.syst.
@@ -188,11 +196,13 @@ PhysicalNode::is_collidable()const{
 void
 PhysicalNode::set_world_transform(math::mat4 const& transform){
 
-	auto parent = get_parent();
-	auto parent_transform = parent->get_world_transform();
+	//auto parent = get_parent();
+	//auto parent_transform = parent->get_world_transform();
 
 	if(mass_ == 0){
-		set_transform(scm::math::inverse(parent_transform)*transform * scm::math::make_scale(scale_));
+		//set_transform(scm::math::inverse(parent_transform)*transform * scm::math::make_scale(scale_));
+		set_transform(transform * scm::math::make_scale(scale_));
+		//last_simulation_step_ = transform;
 	}
 	else{
 
@@ -206,7 +216,9 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 	    auto tmp_trans = parent_transform * scm::math::inverse(scm::math::make_scale(scale_parent));*/
 
 
-		set_transform(scm::math::inverse(parent_transform)*transform);// * scm::math::make_scale(scale_));
+//		set_transform(scm::math::inverse(parent_transform)*transform);// * scm::math::make_scale(scale_));
+		set_transform(transform);// * scm::math::make_scale(scale_));
+		//last_simulation_step_ = transform;
 	//	auto old_world = get_world_transform();
 	//	auto delta = scm::math::inverse(old_world) * transform;
 
@@ -228,14 +240,23 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 	} 
 }
 
-/*math::mat4
+math::mat4
 PhysicalNode::get_world_transform()const{
-	if (parent_)
-        //return scm::math::inverse(parent_->get_world_transform()) * get_transform();
-        return parent_->get_world_transform() * get_transform();//original
-
-    return get_transform();
-}*/
+	std::cout<<"get world transform physical#####################"<<std::endl;
+	//Node* n= nullptr;
+	//std::cout<<n->get_parent()<<std::endl;
+	if(!is_collidable()){
+		if (parent_){
+			std::cout<<"get world trans!!!"<<std::endl;
+	        return parent_->get_world_transform() * get_transform();
+	    }
+	    return get_transform();
+	}
+	else{
+		std::cout<<"get local instead of world trans!!!"<<std::endl;
+    	return get_transform();
+	}
+}
 
 void
 PhysicalNode::calculate_collision_shape(){
@@ -297,23 +318,21 @@ PhysicalNode::get_mass()const{
 
 
 
-/*void
+void
 PhysicalNode::update_cache(){
 
+	//std::cout<<"update cache of collidable object"<<std::endl;
 
 	if(!is_collidable()){
-
-
 		if (self_dirty_) {
+			//std::cout<<"update cache local !!!!!!= world!!!"<<std::endl;
 	        if (is_root()) {
 	            world_transform_ = get_transform();
 	        } else {
-	            world_transform_ = get_parent()->get_world_transform() * get_transform();
+	            world_transform_ = get_parent()->get_cached_world_transform() * get_transform();
 	        }
-
 	        self_dirty_ = false;
 	    }
-
 	    if (child_dirty_) {
 	        for (auto child: get_children()) {
 	            child->update_cache();
@@ -326,26 +345,48 @@ PhysicalNode::update_cache(){
 	}
 	else{
 
-		std::cout<<"update cache of collidable object"<<std::endl;
 		
 
 
 		//std::cout<<"parent world"<<parent_world_<<std::endl;
-	    auto parent_delta = scm::math::inverse(parent_world_) * get_parent()->get_world_transform();
+	    //auto parent_delta = scm::math::inverse(parent_world_) * get_parent()->get_world_transform();
 	    //std::cout<<"parent_delta"<<parent_delta<<std::endl;
 
 
 		//set_transform(scm::math::inverse(parent_delta) * get_transform());
 
-		set_transform(scm::math::inverse(parent_delta) * get_transform());
+		//set_transform(scm::math::inverse(parent_delta) * get_transform());
 
+		//auto parent = get_parent();
+		//auto parent_transform = parent->get_world_transform();
 
-		world_transform_ = get_transform();
+		//world_transform_ = scm::math::inverse(parent_transform) * get_transform();
 
+		//std::cout<<"update cache local = world!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
+		
+		//world_transform_ = get_transform();
 		if (self_dirty_) {
 
-	        world_transform_ = get_transform();
+	        //auto parent = get_parent();
+			//auto parent_transform = parent->get_world_transform();
 
+			/*if(mass_ == 0){
+
+				set_transform(scm::math::inverse(parent_transform) * last_simulation_step_ * scm::math::make_scale(scale_));
+			}
+			else{
+				set_transform(scm::math::inverse(parent_transform) * last_simulation_step_);
+			}*/
+
+	        //world_transform_ = get_transform();
+
+	       	world_transform_ = get_transform();
+	       	/*if (is_root()) {
+	            world_transform_ = get_transform();
+	        } else {
+	            //world_transform_ = get_parent()->get_world_transform() * get_transform();
+	            world_transform_ = parent_transform * get_transform();
+	        }*/
 
 	        self_dirty_ = false;
 	    }
@@ -360,7 +401,7 @@ PhysicalNode::update_cache(){
 	        child_dirty_ = false;
 	    }
 	}
-}*/
+}
 
 
 

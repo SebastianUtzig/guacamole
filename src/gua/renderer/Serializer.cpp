@@ -143,7 +143,7 @@ void Serializer::check(SerializedScene* output,
 
       if (mesh_ptr) {
 
-        data_->meshnodes_.push_back(make_serialized_node(node->get_world_transform(), node->data));
+        data_->meshnodes_.push_back(make_serialized_node(node->get_cached_world_transform(), node->data));
 
       } else {
 
@@ -151,7 +151,7 @@ void Serializer::check(SerializedScene* output,
             gua::GeometryDatabase::instance()->lookup(node->data.get_geometry()));
 
         if (nurbs_ptr) {
-          data_->nurbsnodes_.push_back(make_serialized_node(node->get_world_transform(), node->data));
+          data_->nurbsnodes_.push_back(make_serialized_node(node->get_cached_world_transform(), node->data));
         }
       }
     }
@@ -169,7 +169,7 @@ void Serializer::check(SerializedScene* output,
   if ( is_visible(node) ) {
     if ( !node->data.get_volume().empty() ) {
       add_bbox(node);
-      data_->volumenodes_.push_back(make_serialized_node(node->get_world_transform(), node->data));	  
+      data_->volumenodes_.push_back(make_serialized_node(node->get_cached_world_transform(), node->data));	  
     }
 
     visit_children(node);
@@ -184,7 +184,7 @@ void Serializer::check(SerializedScene* output,
 
     add_bbox(node);
 
-    data_->point_lights_.push_back(make_serialized_node(node->get_world_transform(), node->data));
+    data_->point_lights_.push_back(make_serialized_node(node->get_cached_world_transform(), node->data));
 
     visit_children(node);
   }
@@ -199,7 +199,7 @@ void Serializer::check(SerializedScene* output,
     add_bbox(node);
 
     data_->spot_lights_
-        .push_back(make_serialized_node(node->get_world_transform(), node->data));
+        .push_back(make_serialized_node(node->get_cached_world_transform(), node->data));
 
     visit_children(node);
   }
@@ -215,7 +215,7 @@ void Serializer::check(SerializedScene* output,
       GeometryNode::Configuration config;
       config.set_geometry("gua_ray_geometry");
       config.set_material("gua_bounding_box");
-      data_->rays_.push_back(make_serialized_node(node->get_world_transform(), config));
+      data_->rays_.push_back(make_serialized_node(node->get_cached_world_transform(), config));
     }
 
     visit_children(node);

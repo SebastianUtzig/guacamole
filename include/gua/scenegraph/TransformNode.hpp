@@ -56,6 +56,7 @@ class GUA_DLL TransformNode : public Node {
    */
   /* virtual */ void accept(NodeVisitor&);
 
+
  private:
 
   std::shared_ptr<Node> copy() const;

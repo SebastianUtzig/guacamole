@@ -49,9 +49,9 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     float get_mass()const;
 
-    ///*virtual*/ math::mat4 get_world_transform() const;
+    /*virtual*/ math::mat4 get_world_transform() const;
 
-    ///*virtual*/ void update_cache();
+    /*virtual*/ void update_cache();
 
 
     ///* virtual */ void accept(NodeVisitor&);
@@ -79,7 +79,9 @@ class GUA_DLL PhysicalNode: public TransformNode{
     math::vec3                                   scale_;
     bool                                         set_scale_;
     math::mat4                                   geom_world_;
-    math::mat4                                   parent_world_;
+    //math::mat4                                   parent_world_;
+
+    //math::mat4                                   last_simulation_step_;
 
 
 

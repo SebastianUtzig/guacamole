@@ -197,7 +197,9 @@ class GUA_DLL Node {
    *
    * \return transform The Object's transformation.
    */
-  math::mat4 get_world_transform() const;
+  virtual math::mat4 get_world_transform() const ;
+
+  math::mat4 get_cached_world_transform() const;
 
   math::vec3 get_world_position() const;
 
@@ -341,7 +343,7 @@ class GUA_DLL Node {
 
  private:
   // structure
-  Node* parent_;
+  //Node* parent_;
   std::vector<std::shared_ptr<Node>> children_;
 
   // internal annotations
@@ -351,6 +353,9 @@ class GUA_DLL Node {
   math::mat4 transform_;
 
  protected:
+
+  Node* parent_;
+  
   void set_dirty() const;
   void set_parent_dirty() const;
   void set_children_dirty() const;
