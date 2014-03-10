@@ -48,6 +48,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			//rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,get_world_transform()));
 			geom_world_ = geometry_->get_world_transform();
+			//std::cout<<"geometry get world transform "<<get_geometry()->get_path()<<geom_world_<<std::endl;
 			//parent_world_ = get_parent()->get_world_transform();
 
 
@@ -148,7 +149,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			rigid_body_->add_child(collision_shape_);
 
 //			if(warn_parent)warn_parent_physics(get_parent());
-
+ 
 
 			std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
 			for(auto cs : collision_shapes){
@@ -165,7 +166,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			}
 
 			physics_->add_rigid_body(std::make_pair(rigid_body_,this));
-			if(warn_parent)warn_parent_physics(get_parent());
+//			if(warn_parent)warn_parent_physics(get_parent());
 		}
 		else{
 			//make_collidable(false,false);
@@ -242,18 +243,18 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 
 math::mat4
 PhysicalNode::get_world_transform()const{
-	std::cout<<"get world transform physical#####################"<<std::endl;
+	//std::cout<<"get world transform physical#####################"<<std::endl;
 	//Node* n= nullptr;
 	//std::cout<<n->get_parent()<<std::endl;
 	if(!is_collidable()){
 		if (parent_){
-			std::cout<<"get world trans!!!"<<std::endl;
+			//std::cout<<"get world trans!!!"<<std::endl;
 	        return parent_->get_world_transform() * get_transform();
 	    }
 	    return get_transform();
 	}
 	else{
-		std::cout<<"get local instead of world trans!!!"<<std::endl;
+		//std::cout<<"get local instead of world trans!!!"<<std::endl;
     	return get_transform();
 	}
 }
@@ -321,7 +322,6 @@ PhysicalNode::get_mass()const{
 void
 PhysicalNode::update_cache(){
 
-	//std::cout<<"update cache of collidable object"<<std::endl;
 
 	if(!is_collidable()){
 		if (self_dirty_) {
@@ -367,6 +367,7 @@ PhysicalNode::update_cache(){
 		//world_transform_ = get_transform();
 		if (self_dirty_) {
 
+			//std::cout<<"update cache of collidable object"<<std::endl;
 	        //auto parent = get_parent();
 			//auto parent_transform = parent->get_world_transform();
 
