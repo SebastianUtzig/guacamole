@@ -93,17 +93,20 @@ void CollisionShapeNodeVisitor::check(RigidBodyNode* rigid_body) {
 /* virtual */ void CollisionShapeNodeVisitor::visit(CollisionShapeNode* node) {
 
   pop_stack(node);
+
   math::mat4 curr_matrix(matrix_stack_.top() * node->get_transform());
 
   if (shape_index_ >= rigid_body_->shapes().size()) {
     rigid_body_->shapes().push_back(RigidBodyNode::ShapeElement());
     resync_ = true;
   }
+
   RigidBodyNode::ShapeElement& sh = rigid_body_->shapes().at(shape_index_);
   if (sh.transform != curr_matrix) {
     sh.transform = curr_matrix;
     resync_ = true;
   }
+
   if (sh.shape_name != node->data.get_shape()) {
     sh.shape = CollisionShapeDatabase::instance()->lookup(node->data.get_shape());
     sh.shape_name = node->data.get_shape();

@@ -70,6 +70,12 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 				collect_collision_shapes(&*child,collision_shapes);
 			}
 
+			//create physics subgraph:
+			///root:
+			auto phys_root = new TransformNode("phys_root");
+
+			///rigidbody and collisionshape of first geometry:
+
 			//rigidbody just consist of center of mass translation - offset in collisionshape and geometry
 			if(mass_ != 0){
 				//calculate new center of mass
@@ -120,11 +126,14 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			rigid_body_->add_child(collision_shape_);
 
+			//add to physics root:
+			phys_root->add_child(rigid_body_);
+
 //			if(warn_parent)warn_parent_physics(get_parent());
  
 
 			std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
-/*			for(auto cs : collision_shapes){
+			for(auto cs : collision_shapes){
 
 				//std::cout<<"cs: "<<std::get<0>(cs)->get_name()<<std::endl;
 
@@ -135,7 +144,9 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 				//std::cout<<"rigid_body_ transform "<<rigid_body_->get_transform()<<std::endl;
 				//std::cout<<"collision shape transform "<<cs.first->get_transform()<<std::endl;
 				rigid_body_->add_child(std::get<0>(cs));
-			}*/
+			}
+
+
 
 			physics_->add_rigid_body(std::make_pair(rigid_body_,this));
 			
@@ -152,6 +163,10 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 		auto parent_trans = get_parent()->get_world_transform();
 		geometry_->set_transform(scm::math::inverse(parent_trans) * get_transform()  * geometry_->get_transform());
 		set_transform(math::mat4::identity());
+
+		//try to rescue cs (???)
+		//rigid_body_->clear_children();
+		rigid_body_.reset();
 
 		rigid_body_ = nullptr;
 		if(warn_parent)warn_parent_physics(get_parent());
