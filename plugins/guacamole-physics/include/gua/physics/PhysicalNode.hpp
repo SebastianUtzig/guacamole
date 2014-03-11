@@ -8,6 +8,7 @@
 #include <gua/physics.hpp>
 //#include <gua/physics/CollisionShapeNode.hpp>
 //#include <gua/physics/RigidBodyNode.hpp>
+#include <gua/physics/CollisionShapeCollector.hpp>
 
 // external headers
 #include <string>
@@ -72,6 +73,9 @@ class GUA_DLL PhysicalNode: public TransformNode{
     std::shared_ptr<physics::RigidBodyNode>      rigid_body_;
   	std::shared_ptr<physics::CollisionShapeNode> collision_shape_;
     std::shared_ptr<GeometryNode>                geometry_;
+
+    CollisionShapeCollector*                     cs_collector_;
+
   	float				                                 mass_;
   	float				                                 friction_;
   	float				                                 restitution_;
