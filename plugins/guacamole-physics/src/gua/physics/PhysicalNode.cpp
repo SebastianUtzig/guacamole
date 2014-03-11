@@ -70,7 +70,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 				collect_collision_shapes(&*child,collision_shapes);
 			}
 
-			//create physics subgraph:
+			//create physics subgraph: (root - rb - cs)
 			///root:
 			auto phys_root = new TransformNode("phys_root");
 
@@ -91,10 +91,6 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 
 				com = com / new_mass;
-
-				//std::cout<<"center of mass of : "<<get_name()<<com<<std::endl;
-				//std::cout<<"center of mass single object : "<<math::vec3(geom_world_[12],geom_world_[13],geom_world_[14])<<std::endl;;
-
 
 				rigid_body_= std::shared_ptr<physics::RigidBodyNode>(new physics::RigidBodyNode(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com)));
 				
@@ -132,17 +128,12 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 //			if(warn_parent)warn_parent_physics(get_parent());
  
 
-			std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
+			//std::cout<<"collision_shapes length "<<collision_shapes.size()<<std::endl;
 			for(auto cs : collision_shapes){
 
-				//std::cout<<"cs: "<<std::get<0>(cs)->get_name()<<std::endl;
+				//similar to transformation of own cs:
+				std::get<0>(cs)->set_transform(scm::math::inverse(rigid_body_->get_transform()) * std::get<1>(cs) * scm::math::inverse(scm::math::make_scale(scale_)));//all other collision shapes in lower graph must be in rb coord.syst.
 
-				//std::cout<<"add collision shape here!!!!!!"<<std::endl;
-				//cs.first->set_transform(scm::math::inverse(get_world_transform()) * cs.second);
-				std::get<0>(cs)->set_transform(scm::math::inverse(get_transform()) * std::get<1>(cs));//all other collision shapes in lower graph must be in rb coord.syst.
-				//cs.first->set_transform(scm::math::inverse(geometry_->get_world_transform()) * cs.second);//all other collision shapes in lower graph must be in rb coord.syst.
-				//std::cout<<"rigid_body_ transform "<<rigid_body_->get_transform()<<std::endl;
-				//std::cout<<"collision shape transform "<<cs.first->get_transform()<<std::endl;
 				rigid_body_->add_child(std::get<0>(cs));
 			}
 
@@ -212,7 +203,7 @@ PhysicalNode::get_world_transform()const{
 void
 PhysicalNode::calculate_collision_shape(){
 	
-	std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
+	// std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
 
 	std::string cs_name = geometry_->get_name()
 					+"_automatic_collision_shape_"
