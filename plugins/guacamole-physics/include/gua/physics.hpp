@@ -47,5 +47,6 @@
 
 // new interface
 #include <gua/physics/PhysicalNode.hpp>
+#include <gua/physics/PhysicalGeometryLoader.hpp>
 
 #endif  // GUA_INCLUDE_PHYSICS_HPP

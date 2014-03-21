@@ -43,6 +43,10 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     /* virtual */ void accept(NodeVisitor&);
 
+    /* virtual */ void scale(float x, float y, float z);
+
+    /* virtual */ void translate(float x, float y, float z);
+
 
 
   private:

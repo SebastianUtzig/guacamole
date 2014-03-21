@@ -141,12 +141,17 @@ PhysicalNode::is_collidable()const{
 
 void
 PhysicalNode::set_world_transform(math::mat4 const& transform){
-	if(mass_ == 0){
-		set_transform(transform * scm::math::make_scale(scale_));
+	if(is_collidable()){
+		if(mass_ == 0){
+			set_transform(transform * scm::math::make_scale(scale_));
+		}
+		else{
+			set_transform(transform);
+		}
 	}
 	else{
-		set_transform(transform);
-	} 
+		world_transform_ = transform;//sinnvoll?
+	}
 }
 
 math::mat4
@@ -165,7 +170,7 @@ PhysicalNode::get_world_transform()const{
 void
 PhysicalNode::calculate_collision_shape(){
 	
-	// std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
+	//std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
 
 	std::string cs_name = geometry_->get_name()
 					+"_automatic_collision_shape_"
@@ -289,7 +294,39 @@ PhysicalNode::accept(NodeVisitor& visitor) {
 		visitor.visit(this);
 	}
 
+}
 
+void
+PhysicalNode::scale(float x, float y, float z){
+	bool was_collidable = false;
+	if(is_collidable()){
+		was_collidable = true;
+		make_collidable(false,false);
+		collision_shape_.reset();
+		collision_shape_ = nullptr;
+		set_scale_ = false;
+	}
+	
+	geometry_->scale(x,y,z);
+
+	if(was_collidable){
+		make_collidable(true,false);
+	}
+}
+
+void
+PhysicalNode::translate(float x, float y, float z){
+	bool was_collidable = false;
+	if(is_collidable()){
+		was_collidable = true;
+		make_collidable(false,false);
+	}
+	
+	geometry_->translate(x,y,z);
+
+	if(was_collidable){
+		make_collidable(true,false);
+	}
 }
 
 

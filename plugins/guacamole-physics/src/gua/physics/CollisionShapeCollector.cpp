@@ -8,7 +8,13 @@ CollisionShapeCollector::CollisionShapeCollector():
 	collected_collision_shapes_(std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>>())
 	{}
 
-CollisionShapeCollector::~CollisionShapeCollector(){}
+CollisionShapeCollector::~CollisionShapeCollector(){
+	while(!collected_collision_shapes_.empty()){
+		collected_collision_shapes_.pop_back();
+	}
+
+
+}
 
 
 void
