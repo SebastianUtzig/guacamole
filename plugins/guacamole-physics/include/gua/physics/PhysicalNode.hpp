@@ -41,7 +41,7 @@ class GUA_DLL PhysicalNode: public TransformNode{
     /*virtual*/ void update_cache();
 
 
-    ///* virtual */ void accept(NodeVisitor&);
+    /* virtual */ void accept(NodeVisitor&);
 
 
 

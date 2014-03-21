@@ -16,13 +16,7 @@ CollisionShapeCollector::check(PhysicalNode* pn){
 
 	collected_collision_shapes_.clear();
 
-	auto transform = pn->get_geometry()->get_world_transform();
-	collected_collision_shapes_.push_back(std::make_tuple(pn->get_collision_shape(),transform,pn->get_mass()));
-	
-	// visit children
-	for(auto child : pn->get_children()){
-  		child->accept(*this);
-	}
+	pn->accept(*this);
 
 }
 
@@ -48,11 +42,6 @@ CollisionShapeCollector::visit(PhysicalNode* node){
 
 void
 CollisionShapeCollector::visit(Node* node){
-	auto physical = dynamic_cast<PhysicalNode*>(node);
-	if(physical){
-		visit(physical);
-		return;
-	}
 	for(auto child : node->get_children()){
 		child->accept(*this);
 	}

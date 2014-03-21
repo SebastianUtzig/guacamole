@@ -278,6 +278,20 @@ PhysicalNode::update_physics_structure(){
 	return make_collidable(true,false);
 }
 
+void
+PhysicalNode::accept(NodeVisitor& visitor) {
+
+	auto collector = dynamic_cast<CollisionShapeCollector*>(&visitor);
+	if(collector){
+		collector->visit(this);
+	}
+	else{
+		visitor.visit(this);
+	}
+
+
+}
+
 
 
 }
