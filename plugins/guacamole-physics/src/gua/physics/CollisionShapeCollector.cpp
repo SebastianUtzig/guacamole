@@ -1,4 +1,5 @@
 #include <gua/physics/CollisionShapeCollector.hpp>
+#include <gua/physics/PhysicalNode.hpp>
 
 
 namespace gua{
@@ -14,14 +15,20 @@ void
 CollisionShapeCollector::check(PhysicalNode* pn){
 
 	collected_collision_shapes_.clear();
-	// visit the rigid body
-  	pn->accept(*this);
+
+	auto transform = pn->get_geometry()->get_world_transform();
+	collected_collision_shapes_.push_back(std::make_tuple(pn->get_collision_shape(),transform,pn->get_mass()));
+	
+	// visit children
+	for(auto child : pn->get_children()){
+  		child->accept(*this);
+	}
 
 }
 
 void
 CollisionShapeCollector::visit(PhysicalNode* node){
-	if(node->is_collidable()){
+	if(!node->is_collidable()){
 		auto cs = node->get_collision_shape();
 		if(cs){	
 			
@@ -39,6 +46,18 @@ CollisionShapeCollector::visit(PhysicalNode* node){
 
 }
 
+void
+CollisionShapeCollector::visit(Node* node){
+	auto physical = dynamic_cast<PhysicalNode*>(node);
+	if(physical){
+		visit(physical);
+		return;
+	}
+	for(auto child : node->get_children()){
+		child->accept(*this);
+	}
+}
+
 math::vec3
 CollisionShapeCollector::get_center_of_mass()const{
 
@@ -52,12 +71,18 @@ CollisionShapeCollector::get_center_of_mass()const{
 		com += math::vec3(mat[12],mat[13],mat[14]) * mass;
 	}
 
-
-	return com / new_mass;
+	if(new_mass > 0.0){
+		return com / new_mass;
+	}
+	else{
+		//std::cout<<" Attention: No collision shapes found in CollisionShapeCollector!"<<std::endl;//or just static ones
+		return com;
+	}
 }
 
 void
 CollisionShapeCollector::add_shapes_to_rb(physics::RigidBodyNode* rb){
+	//std::cout<<"collected_collision_shapes_ length: "<<collected_collision_shapes_.size()<<std::endl;
 	for(auto cs : collected_collision_shapes_){
 
 		auto cs_world = std::get<1>(cs);
@@ -69,9 +94,9 @@ CollisionShapeCollector::add_shapes_to_rb(physics::RigidBodyNode* rb){
 	    auto cs_scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
 
 		//similar to transformation of own cs:
-		std::get<0>(cs)->set_transform(scm::math::inverse(rigid_body_->get_transform()) * cs_world * scm::math::inverse(scm::math::make_scale(cs_scale)));//all other collision shapes in lower graph must be in rb coord.syst.
+		std::get<0>(cs)->set_transform(scm::math::inverse(rb->get_transform()) * cs_world * scm::math::inverse(scm::math::make_scale(cs_scale)));//all other collision shapes in lower graph must be in rb coord.syst.
 
-		rigid_body_->add_child(std::get<0>(cs));
+		rb->add_child(std::get<0>(cs));
 	}
 }
 

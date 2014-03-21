@@ -1,6 +1,8 @@
 #ifndef GUA_COLLISION_SHAPE_COLLECTOR_HPP
 #define GUA_COLLISION_SHAPE_COLLECTOR_HPP
 
+// guacamole headers
+#include <gua/guacamole.hpp>
 
 
 namespace gua{
@@ -23,6 +25,8 @@ class CollisionShapeCollector : public NodeVisitor {
  	math::vec3	get_center_of_mass()const;
 
  	void 		add_shapes_to_rb(physics::RigidBodyNode* rb);
+
+ 	void 		visit(Node* node);
 
 
 
