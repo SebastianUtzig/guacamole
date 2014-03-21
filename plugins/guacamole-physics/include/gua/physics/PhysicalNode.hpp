@@ -3,11 +3,8 @@
 
 
 // guacamole headers
-//#include <gua/scenegraph/GeometryNode.hpp>
 #include <gua/guacamole.hpp>
 #include <gua/physics.hpp>
-//#include <gua/physics/CollisionShapeNode.hpp>
-//#include <gua/physics/RigidBodyNode.hpp>
 #include <gua/physics/CollisionShapeCollector.hpp>
 
 // external headers
@@ -21,20 +18,9 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
   public:
 
-  	/*struct Configuration {
-      GUA_ADD_PROPERTY(std::string,     geometry,   "gua_default_geometry");
-      GUA_ADD_PROPERTY(std::string,     material,   "gua_default_material");
-    };*/
-
-    //Configuration data;
-
     PhysicalNode() {};
 
-  	PhysicalNode(/*std::string const& name,
-                 physics::Physics* physics,
-                 GeometryNode::Configuration const& configuration = GeometryNode::Configuration(),
-                 math::mat4 const& transform = math::mat4::identity(),*/
-                 std::shared_ptr<GeometryNode> const&,
+  	PhysicalNode(std::shared_ptr<GeometryNode> const&,
                  physics::Physics* physics,
                  std::shared_ptr<physics::CollisionShapeNode> const& cs = nullptr,
                  float mass = 0.5f,
@@ -61,8 +47,6 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
   private:
 
-    //std::shared_ptr<Node> copy() const;
-
     void collect_collision_shapes(Node*,std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>>&)const;
     void warn_parent_physics(Node*)const;
     bool update_physics_structure();
@@ -82,10 +66,6 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     math::vec3                                   scale_;
     bool                                         set_scale_;
-
-
-
-
 
 
 };
