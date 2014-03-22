@@ -39,6 +39,9 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			auto geom_world_ = geometry_->get_world_transform();
 
+			std::cout<<"geome world in physical node: "<<geom_world_<<std::endl;
+			std::cout<<"geom path in physical node: "<<geometry_->get_path()<<std::endl;
+
 
 			if(/*mass_!=0.0 &&*/ set_scale_==false){
 				//getScale solution from avango-gua
@@ -115,7 +118,14 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 		physics_->remove_rigid_body(rigid_body_);
 
 		//set all transformations into geometry again
-		auto parent_trans = get_parent()->get_world_transform();
+		math::mat4 parent_trans;
+		if(get_parent()){
+			parent_trans = get_parent()->get_world_transform();
+		}
+		else{
+			parent_trans = math::mat4::identity();
+		}
+
 		geometry_->set_transform(scm::math::inverse(parent_trans) * get_transform()  * geometry_->get_transform());
 		set_transform(math::mat4::identity());
 
@@ -213,9 +223,29 @@ PhysicalNode::get_geometry()const{
 	return geometry_;
 }
 
+std::shared_ptr<physics::RigidBodyNode>
+PhysicalNode::get_rigid_body()const{
+	return rigid_body_;
+}
+
 float
 PhysicalNode::get_mass()const{
 	return mass_;
+}
+void
+PhysicalNode::set_mass(float mass){
+	mass_ = mass;
+	
+	if(is_collidable()){
+		if(mass_ >0.0 && mass > 0.0){
+			rigid_body_->set_mass(mass);
+		}
+		else{
+			// from static to dynamic or other way around
+			make_collidable(false,false);
+			make_collidable(true,false);
+		}
+	}
 }
 
 
@@ -315,10 +345,32 @@ PhysicalNode::scale(float x, float y, float z){
 }
 
 void
-PhysicalNode::translate(float x, float y, float z){
+PhysicalNode::rotate(float angle, float x, float y, float z){
 	bool was_collidable = false;
 	if(is_collidable()){
 		was_collidable = true;
+		make_collidable(false,false);
+	}
+	
+	geometry_->rotate(angle, x, y, z);
+
+	if(was_collidable){
+		make_collidable(true,false);
+	}
+}
+
+void
+PhysicalNode::translate(float x, float y, float z){
+	bool was_collidable = false;
+	math::vec3 saved_angular_vel;
+	math::vec3 saved_linear_vel;
+
+	if(is_collidable()){
+		was_collidable = true;
+
+		saved_angular_vel = rigid_body_->angular_velocity();
+		saved_linear_vel = rigid_body_->linear_velocity();
+
 		make_collidable(false,false);
 	}
 	
@@ -326,8 +378,81 @@ PhysicalNode::translate(float x, float y, float z){
 
 	if(was_collidable){
 		make_collidable(true,false);
+		rigid_body_->set_angular_velocity(saved_angular_vel);
+		rigid_body_->set_linear_velocity(saved_linear_vel);
 	}
 }
+
+/*//RigidBody Interface
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_kinematic(bool kinematic) {rigid_body_->set_kinematic(kinematic);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_mass(float mass) {rigid_body_->set_mass(mass);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_friction(float frict) {rigid_body_->set_friction(frict);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_rolling_friction(float frict) {rigid_body_->set_rolling_friction(frict);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_restitution(float rest) {rigid_body_->set_restitution(rest);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_damping(float lin_damping, float ang_damping) {rigid_body_->set_damping(lin_damping,ang_damping);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::apply_force(const math::vec3& force,
+                                const math::vec3& rel_pos) {rigid_body_->apply_force(force,rel_pos);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::apply_central_force(const math::vec3& force) {rigid_body_->apply_central_force(force);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::apply_torque(const math::vec3& torque) {rigid_body_->apply_torque(torque);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::apply_torque_impulse(const math::vec3& torque) {rigid_body_->apply_torque_impulse(torque);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::apply_impulse(const math::vec3& impulse,
+                                  const math::vec3& rel_pos) {rigid_body_->apply_impulse(impulse,rel_pos);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::apply_central_impulse(const math::vec3& impulse) {rigid_body_->apply_central_impulse(impulse);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::clear_forces() {rigid_body_->clear_forces();}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_angular_velocity(const math::vec3& vel) {rigid_body_->set_angular_velocity(vel);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+math::vec3 PhysicalNode::angular_velocity() const {return rigid_body_->angular_velocity();}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void PhysicalNode::set_linear_velocity(const math::vec3& vel) {rigid_body_->set_linear_velocity(vel);}
+
+////////////////////////////////////////////////////////////////////////////////
+
+math::vec3 PhysicalNode::linear_velocity() const {return rigid_body_->linear_velocity();}*/
 
 
 
