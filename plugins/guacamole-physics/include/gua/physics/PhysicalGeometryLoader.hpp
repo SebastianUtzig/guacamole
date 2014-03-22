@@ -31,14 +31,10 @@ class PhysicalGeometryLoader : public NodeVisitor{
 
   private:
 
-  	void 		          check(Node*);
-
     physics::Physics* physics_;
     bool              make_all_collidable_;
 
     GeometryLoader  loader_;
-
-    std::list<std::shared_ptr<Node>>  loaded_nodes_;
 
 
 

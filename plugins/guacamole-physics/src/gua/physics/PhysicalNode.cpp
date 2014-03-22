@@ -39,8 +39,8 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 			auto geom_world_ = geometry_->get_world_transform();
 
-			std::cout<<"geome world in physical node: "<<geom_world_<<std::endl;
-			std::cout<<"geom path in physical node: "<<geometry_->get_path()<<std::endl;
+			//std::cout<<"geome world in physical node: "<<geom_world_<<std::endl;
+			//std::cout<<"geom path in physical node: "<<geometry_->get_path()<<std::endl;
 
 
 			if(/*mass_!=0.0 &&*/ set_scale_==false){
@@ -329,8 +329,15 @@ PhysicalNode::accept(NodeVisitor& visitor) {
 void
 PhysicalNode::scale(float x, float y, float z){
 	bool was_collidable = false;
+	math::vec3 saved_angular_vel;
+	math::vec3 saved_linear_vel;
+	
 	if(is_collidable()){
 		was_collidable = true;
+
+		saved_angular_vel = rigid_body_->angular_velocity();
+		saved_linear_vel = rigid_body_->linear_velocity();
+
 		make_collidable(false,false);
 		collision_shape_.reset();
 		collision_shape_ = nullptr;
@@ -341,14 +348,23 @@ PhysicalNode::scale(float x, float y, float z){
 
 	if(was_collidable){
 		make_collidable(true,false);
+		rigid_body_->set_angular_velocity(saved_angular_vel);
+		rigid_body_->set_linear_velocity(saved_linear_vel);
 	}
 }
 
 void
 PhysicalNode::rotate(float angle, float x, float y, float z){
 	bool was_collidable = false;
+	math::vec3 saved_angular_vel;
+	math::vec3 saved_linear_vel;
+
 	if(is_collidable()){
 		was_collidable = true;
+
+		saved_angular_vel = rigid_body_->angular_velocity();
+		saved_linear_vel = rigid_body_->linear_velocity();
+
 		make_collidable(false,false);
 	}
 	
@@ -356,6 +372,8 @@ PhysicalNode::rotate(float angle, float x, float y, float z){
 
 	if(was_collidable){
 		make_collidable(true,false);
+		rigid_body_->set_angular_velocity(saved_angular_vel);
+		rigid_body_->set_linear_velocity(saved_linear_vel);
 	}
 }
 
