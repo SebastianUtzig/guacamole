@@ -15,6 +15,7 @@ PhysicalNode::PhysicalNode(
 		:   TransformNode(geom->get_name()+"_physical"),
 			rigid_body_(nullptr),
 			mass_(mass),
+			//cs_already_simulated_in_(nullptr),
 			friction_(friction),
 			restitution_(restitution),
 			collision_shape_(cs),
@@ -30,9 +31,9 @@ PhysicalNode::PhysicalNode(
 
 
 bool
-PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
+PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
-	if(b_make_collidable){
+	if(b_simulate){
 
 		if(rigid_body_==nullptr){
 
@@ -109,6 +110,10 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 			physics_->add_rigid_body(std::make_pair(rigid_body_,this));
 			
 			if(warn_parent)warn_parent_physics(get_parent());
+			/*if(cs_already_simulated_in_){
+				cs_already_simulated_in_->update_physics_structure();
+				cs_already_simulated_in_ = nullptr;
+			}*/
 		}
 		else{
 			return update_physics_structure();
@@ -141,7 +146,7 @@ PhysicalNode::make_collidable(bool b_make_collidable,bool warn_parent){
 
 
 bool
-PhysicalNode::is_collidable()const{
+PhysicalNode::is_simulating()const{
 	if (rigid_body_){
 		return true;
 	}
@@ -151,7 +156,7 @@ PhysicalNode::is_collidable()const{
 
 void
 PhysicalNode::set_world_transform(math::mat4 const& transform){
-	if(is_collidable()){
+	if(is_simulating()){
 		if(mass_ == 0){
 			set_transform(transform * scm::math::make_scale(scale_));
 		}
@@ -166,7 +171,7 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 
 math::mat4
 PhysicalNode::get_world_transform()const{
-	if(!is_collidable()){
+	if(!is_simulating()){
 		if (parent_){
 	        return parent_->get_world_transform() * get_transform();
 	    }
@@ -203,6 +208,13 @@ PhysicalNode::calculate_collision_shape(){
 	collision_shape_ = csn;
 }
 
+
+/*void
+PhysicalNode::cs_already_simulated_in(PhysicalNode* pn){
+	cs_already_simulated_in_ = pn;
+}*/
+
+
 std::shared_ptr<physics::CollisionShapeNode>
 PhysicalNode::get_collision_shape(){
 	if (collision_shape_){return collision_shape_;}
@@ -236,14 +248,14 @@ void
 PhysicalNode::set_mass(float mass){
 	mass_ = mass;
 	
-	if(is_collidable()){
+	if(is_simulating()){
 		if(mass_ >0.0 && mass > 0.0){
 			rigid_body_->set_mass(mass);
 		}
 		else{
 			// from static to dynamic or other way around
-			make_collidable(false,false);
-			make_collidable(true,false);
+			simulate(false,false);
+			simulate(true,false);
 		}
 	}
 }
@@ -252,7 +264,7 @@ PhysicalNode::set_mass(float mass){
 
 void
 PhysicalNode::update_cache(){
-	if(!is_collidable()){
+	if(!is_simulating()){
 		if (self_dirty_) {
 	        if (is_root()) {
 	            world_transform_ = get_transform();
@@ -291,7 +303,7 @@ PhysicalNode::warn_parent_physics(Node* parent)const{
 	if(parent){
 		if(dynamic_cast<PhysicalNode*>(parent)){
 			auto phys_node = dynamic_cast<PhysicalNode*>(parent);
-			if(phys_node->is_collidable()){
+			if(phys_node->is_simulating()){
 				if(!phys_node->update_physics_structure()){
 					std::cout<<"Error in Update Phyics Structure of Parent!"<<std::endl;
 				}
@@ -309,8 +321,8 @@ PhysicalNode::warn_parent_physics(Node* parent)const{
 
 bool
 PhysicalNode::update_physics_structure(){
-	make_collidable(false,false);
-	return make_collidable(true,false);
+	simulate(false,false);
+	return simulate(true,false);
 }
 
 void
@@ -332,13 +344,13 @@ PhysicalNode::scale(float x, float y, float z){
 	math::vec3 saved_angular_vel;
 	math::vec3 saved_linear_vel;
 	
-	if(is_collidable()){
+	if(is_simulating()){
 		was_collidable = true;
 
 		saved_angular_vel = rigid_body_->angular_velocity();
 		saved_linear_vel = rigid_body_->linear_velocity();
 
-		make_collidable(false,false);
+		simulate(false,false);
 		collision_shape_.reset();
 		collision_shape_ = nullptr;
 		set_scale_ = false;
@@ -347,7 +359,7 @@ PhysicalNode::scale(float x, float y, float z){
 	geometry_->scale(x,y,z);
 
 	if(was_collidable){
-		make_collidable(true,false);
+		simulate(true,false);
 		rigid_body_->set_angular_velocity(saved_angular_vel);
 		rigid_body_->set_linear_velocity(saved_linear_vel);
 	}
@@ -359,19 +371,19 @@ PhysicalNode::rotate(float angle, float x, float y, float z){
 	math::vec3 saved_angular_vel;
 	math::vec3 saved_linear_vel;
 
-	if(is_collidable()){
+	if(is_simulating()){
 		was_collidable = true;
 
 		saved_angular_vel = rigid_body_->angular_velocity();
 		saved_linear_vel = rigid_body_->linear_velocity();
 
-		make_collidable(false,false);
+		simulate(false,false);
 	}
 	
 	geometry_->rotate(angle, x, y, z);
 
 	if(was_collidable){
-		make_collidable(true,false);
+		simulate(true,false);
 		rigid_body_->set_angular_velocity(saved_angular_vel);
 		rigid_body_->set_linear_velocity(saved_linear_vel);
 	}
@@ -383,19 +395,19 @@ PhysicalNode::translate(float x, float y, float z){
 	math::vec3 saved_angular_vel;
 	math::vec3 saved_linear_vel;
 
-	if(is_collidable()){
+	if(is_simulating()){
 		was_collidable = true;
 
 		saved_angular_vel = rigid_body_->angular_velocity();
 		saved_linear_vel = rigid_body_->linear_velocity();
 
-		make_collidable(false,false);
+		simulate(false,false);
 	}
 	
 	geometry_->translate(x,y,z);
 
 	if(was_collidable){
-		make_collidable(true,false);
+		simulate(true,false);
 		rigid_body_->set_angular_velocity(saved_angular_vel);
 		rigid_body_->set_linear_velocity(saved_linear_vel);
 	}

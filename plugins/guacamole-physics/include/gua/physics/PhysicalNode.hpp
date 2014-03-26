@@ -27,10 +27,13 @@ class GUA_DLL PhysicalNode: public TransformNode{
                  float friction = 2.9f,
                  float restitution = 0.3f);
 
-  	bool 	make_collidable(bool,bool warn_parent = true);
-  	bool	is_collidable() const;
+  	bool 	simulate(bool,bool warn_parent = true);
+  	bool	is_simulating() const;
 
     void  set_world_transform(math::mat4 const&);
+    
+    //void cs_already_simulated_in(PhysicalNode*);
+
     std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape();
     std::shared_ptr<GeometryNode>  get_geometry()const;
     std::shared_ptr<physics::RigidBodyNode>  get_rigid_body()const;
@@ -75,6 +78,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
     std::shared_ptr<GeometryNode>                geometry_;
 
     CollisionShapeCollector*                     cs_collector_;
+
+    //PhysicalNode*                                cs_already_simulated_in_;
 
   	float				                                 mass_;
   	float				                                 friction_;

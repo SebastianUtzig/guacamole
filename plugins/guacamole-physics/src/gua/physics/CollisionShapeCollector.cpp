@@ -5,6 +5,7 @@
 namespace gua{
 
 CollisionShapeCollector::CollisionShapeCollector():
+	current_root_(nullptr),
 	collected_collision_shapes_(std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>>())
 	{}
 
@@ -22,19 +23,23 @@ CollisionShapeCollector::check(PhysicalNode* pn){
 
 	collected_collision_shapes_.clear();
 
+	current_root_ = pn;
+
 	pn->accept(*this);
 
 }
 
 void
 CollisionShapeCollector::visit(PhysicalNode* node){
-	if(!node->is_collidable()){
+	if(!node->is_simulating()){
 		auto cs = node->get_collision_shape();
 		if(cs){	
 			
 			auto transform = node->get_geometry()->get_world_transform();
 
 			collected_collision_shapes_.push_back(std::make_tuple(cs,transform,node->get_mass()));
+
+		 	//node->cs_already_simulated_in(current_root_);
 		}
 		else{
 			std::cout<<"no cs :(((("<<std::endl;

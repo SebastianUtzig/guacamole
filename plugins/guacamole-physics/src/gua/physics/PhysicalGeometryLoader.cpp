@@ -7,7 +7,7 @@ namespace gua{
 
 PhysicalGeometryLoader::PhysicalGeometryLoader(physics::Physics * ph)
 		:physics_(ph),
-		 make_all_collidable_(false){}
+		 mass_(1.0){}
 
 PhysicalGeometryLoader::~PhysicalGeometryLoader(){}
 
@@ -36,18 +36,19 @@ PhysicalGeometryLoader::visit(GeometryNode* geom){
     }
 
 
-	auto physical_node = new gua::PhysicalNode(shared_geom,physics_,nullptr,0.0);
+	auto physical_node = new gua::PhysicalNode(shared_geom,physics_,nullptr,mass_);
 //	physical_node->scale(0.008,0.008,0.008);
 //	physical_node->rotate(-90.0,1,0,0);
-	physical_node->translate(0.0,0.0,-10.0);
 
-	if(make_all_collidable_){
-		physical_node->make_collidable(true);
-	}
 
 	std::shared_ptr<Node>shared_node(physical_node);
 
 	parent->add_child(shared_node);
+
+	//start simulation in example later
+	physical_node->translate(0.0,0.0,-10.0);
+	physical_node->simulate(true);
+	
 
 	for(auto child : geom->get_children()){
 		child->accept(*this);
@@ -76,7 +77,7 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 						  std::string const& node_name,
                           std::string const& file_name,
                           std::string const& fallback_material,
-                          bool make_collidable
+                          float mass
                           )
 {
 	auto node = loader_.create_geometry_from_file(node_name, file_name, fallback_material);
@@ -89,11 +90,7 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 			if(geometry){
 				//geometry->data.set_geometry("");
 				//auto phys_node2 = new gua::PhysicalNode(geometry,&physics,csn2);
-				auto physical_node = new gua::PhysicalNode(geometry,physics_,nullptr,1.0);
-
-				if(make_collidable){
-					physical_node->make_collidable(true);
-				}
+				auto physical_node = new gua::PhysicalNode(geometry,physics_,nullptr,mass);
 
 				std::shared_ptr<Node>return_node(physical_node);
 				
@@ -107,7 +104,7 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 		}
 		else{
 			//geometry group
-			make_all_collidable_ = make_collidable;
+			mass_ = mass;
 
 			auto list = node->get_children();
 

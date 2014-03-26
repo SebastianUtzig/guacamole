@@ -34,6 +34,7 @@ class CollisionShapeCollector : public NodeVisitor {
 
  private:
 
+ 	PhysicalNode* current_root_;
  	std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>> collected_collision_shapes_;
 
 

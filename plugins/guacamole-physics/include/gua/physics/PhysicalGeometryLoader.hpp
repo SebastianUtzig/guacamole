@@ -24,7 +24,7 @@ class PhysicalGeometryLoader : public NodeVisitor{
                             (std::string const& node_name,
                             std::string const& file_name,
                             std::string const& fallback_material,
-                            bool make_collidable
+                            float mass = 1.0
                             );
 
 
@@ -32,7 +32,7 @@ class PhysicalGeometryLoader : public NodeVisitor{
   private:
 
     physics::Physics* physics_;
-    bool              make_all_collidable_;
+    float             mass_;
 
     GeometryLoader  loader_;
 
