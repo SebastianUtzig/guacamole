@@ -28,6 +28,8 @@ class CollisionShapeCollector : public NodeVisitor {
 
  	void 		visit(Node* node);
 
+ 	void		visit(GeometryNode* geom);
+
 
 
 

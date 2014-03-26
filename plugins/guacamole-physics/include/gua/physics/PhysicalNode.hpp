@@ -20,7 +20,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     PhysicalNode() {};
 
-  	PhysicalNode(std::shared_ptr<GeometryNode> const&,
+  	PhysicalNode(//std::shared_ptr<GeometryNode> const&,
+                 std::shared_ptr<Node> const&,
                  physics::Physics* physics,
                  std::shared_ptr<physics::CollisionShapeNode> const& cs = nullptr,
                  float mass = 0.5f,
@@ -34,8 +35,8 @@ class GUA_DLL PhysicalNode: public TransformNode{
     
     //void cs_already_simulated_in(PhysicalNode*);
 
-    std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape();
-    std::shared_ptr<GeometryNode>  get_geometry()const;
+//    std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape();
+//    std::shared_ptr<GeometryNode>  get_geometry()const;
     std::shared_ptr<physics::RigidBodyNode>  get_rigid_body()const;
 
 
@@ -69,13 +70,14 @@ class GUA_DLL PhysicalNode: public TransformNode{
     void collect_collision_shapes(Node*,std::list<std::tuple<std::shared_ptr<physics::CollisionShapeNode>,math::mat4,float>>&)const;
     void warn_parent_physics(Node*)const;
     bool update_physics_structure();
-    void calculate_collision_shape();
+//    void calculate_collision_shape();
 
   	
     physics::Physics*                            physics_;
     std::shared_ptr<physics::RigidBodyNode>      rigid_body_;
   	std::shared_ptr<physics::CollisionShapeNode> collision_shape_;
-    std::shared_ptr<GeometryNode>                geometry_;
+    //std::shared_ptr<GeometryNode>                geometry_;
+    std::shared_ptr<Node>                        child_;
 
     CollisionShapeCollector*                     cs_collector_;
 

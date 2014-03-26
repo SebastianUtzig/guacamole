@@ -6,13 +6,15 @@ namespace gua{
 
 
 PhysicalNode::PhysicalNode(
-                 std::shared_ptr<GeometryNode> const& geom,
+                 //std::shared_ptr<Node> const& geom,
+                 std::shared_ptr<Node> const& child,
                  physics::Physics* physics,
 				 std::shared_ptr<physics::CollisionShapeNode> const& cs,
                  float mass,
                  float friction,
                  float restitution)
-		:   TransformNode(geom->get_name()+"_physical"),
+		:   //TransformNode(geom->get_name()+"_physical"),
+		    TransformNode(child->get_name()+"_physical"),
 			rigid_body_(nullptr),
 			mass_(mass),
 			//cs_already_simulated_in_(nullptr),
@@ -20,12 +22,14 @@ PhysicalNode::PhysicalNode(
 			restitution_(restitution),
 			collision_shape_(cs),
 			physics_(physics),
-			geometry_(geom),
+			//geometry_(geom),
+			child_(child),
 			scale_(math::vec3(1.0,1.0,1.0)),
 			set_scale_(false),
 			cs_collector_(new CollisionShapeCollector())
 		{
-			add_child(geometry_);
+			//add_child(geometry_);
+			add_child(child);
 		}
 
 
@@ -38,29 +42,31 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 		if(rigid_body_==nullptr){
 
 
-			auto geom_world_ = geometry_->get_world_transform();
+		//	auto geom_world_ = geometry_->get_world_transform();
 
 			//std::cout<<"geome world in physical node: "<<geom_world_<<std::endl;
 			//std::cout<<"geom path in physical node: "<<geometry_->get_path()<<std::endl;
 
 
-			if(/*mass_!=0.0 &&*/ set_scale_==false){
+		//	if(/*mass_!=0.0 &&*/ set_scale_==false){
 				//getScale solution from avango-gua
-				math::vec3 x_vec(geom_world_[0], geom_world_[1], geom_world_[2]);
-			    math::vec3 y_vec(geom_world_[4], geom_world_[5], geom_world_[6]);
-			    math::vec3 z_vec(geom_world_[8], geom_world_[9], geom_world_[10]);
-			    scale_ = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
-			    set_scale_ = true;
-			}
+		//		math::vec3 x_vec(geom_world_[0], geom_world_[1], geom_world_[2]);
+		//	    math::vec3 y_vec(geom_world_[4], geom_world_[5], geom_world_[6]);
+		//	    math::vec3 z_vec(geom_world_[8], geom_world_[9], geom_world_[10]);
+		//	    scale_ = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+		//	    set_scale_ = true;
+		//	}
 
 
 			//create collision shape
-			if (collision_shape_ == nullptr){
+			/*if (collision_shape_ == nullptr){
 				calculate_collision_shape();
-			}
+			}*/
 
 			
 			cs_collector_->check(this);
+
+			std::cout<<"1111"<<std::endl;
 
 			//create physics subgraph: (root - rb - cs)
 			///root:
@@ -71,36 +77,78 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			//rigidbody just consist of center of mass translation - offset in collisionshape and geometry
 			if(mass_ != 0){
 
+				std::cout<<"2222"<<std::endl;
+
 				math::vec3 com = cs_collector_->get_center_of_mass();
+
+				std::cout<<"3333"<<std::endl;
 
 
 				rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com));
+
+				std::cout<<"4444"<<std::endl;
 				
+
+
+				//new:
+				for(auto child : get_children()){
+					auto child_world = child->get_world_transform();
+					child->set_transform(scm::math::inverse(scm::math::make_translation(com)) * child_world);
+				}
+				/////
+
+				std::cout<<"5555"<<std::endl;
 
 				set_transform(scm::math::make_translation(com));
 
+		//		collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
 
-				collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
-
-				geometry_->set_transform(scm::math::inverse(scm::math::make_translation(com)) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
+		//		geometry_->set_transform(scm::math::inverse(scm::math::make_translation(com)) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
 
 			}
 			else{//static object can hold all transformations of upper geometry
 
-				rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,geom_world_ * scm::math::inverse(scm::math::make_scale(scale_)));
+				std::cout<<"11111b"<<std::endl;
+
+				//new:
+				auto geom = std::dynamic_pointer_cast<GeometryNode>(child_);
+				if(geom){
+					//getScale solution from avango-gua
+					auto geom_world = geom->get_world_transform();
+					math::vec3 x_vec(geom_world[0], geom_world[1], geom_world[2]);
+				    math::vec3 y_vec(geom_world[4], geom_world[5], geom_world[6]);
+				    math::vec3 z_vec(geom_world[8], geom_world[9], geom_world[10]);
+				    auto scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+					rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,geom_world * scm::math::inverse(scm::math::make_scale(scale)));
+
+					for(auto child : get_children()){
+						auto child_world = child->get_world_transform();
+						child->set_transform(scm::math::inverse(geom_world) * child_world);
+					}
+					geom->set_transform(math::mat4::identity());
+					set_transform(geom_world);
+
+				}
+				else{
+					rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,math::mat4::identity());
+					set_transform(math::mat4::identity());
+				}
 
 
-				set_transform(geom_world_);
+		//		rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,geom_world_ * scm::math::inverse(scm::math::make_scale(scale_)));
 
 
-				collision_shape_->set_transform(math::mat4::identity());
+		//		set_transform(geom_world_);
 
-				geometry_->set_transform(math::mat4::identity());
+
+		//		collision_shape_->set_transform(math::mat4::identity());
+
+		//		geometry_->set_transform(math::mat4::identity());
 			}
 
 
 
-			rigid_body_->add_child(collision_shape_);
+		//	rigid_body_->add_child(collision_shape_);
 
 			//add to physics root:
 			phys_root->add_child(rigid_body_);
@@ -131,7 +179,15 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			parent_trans = math::mat4::identity();
 		}
 
-		geometry_->set_transform(scm::math::inverse(parent_trans) * get_transform()  * geometry_->get_transform());
+	//	geometry_->set_transform(scm::math::inverse(parent_trans) * get_transform()  * geometry_->get_transform());
+
+		//new
+		for(auto child : get_children()){
+			auto child_trans = child->get_transform();
+			child->set_transform(scm::math::inverse(parent_trans) * get_transform()  * child_trans);
+		}
+		///////
+
 		set_transform(math::mat4::identity());
 
 		rigid_body_.reset();
@@ -158,7 +214,7 @@ void
 PhysicalNode::set_world_transform(math::mat4 const& transform){
 	if(is_simulating()){
 		if(mass_ == 0){
-			set_transform(transform * scm::math::make_scale(scale_));
+	//		set_transform(transform * scm::math::make_scale(scale_));
 		}
 		else{
 			set_transform(transform);
@@ -182,7 +238,7 @@ PhysicalNode::get_world_transform()const{
 	}
 }
 
-void
+/*void
 PhysicalNode::calculate_collision_shape(){
 	
 	//std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
@@ -206,7 +262,7 @@ PhysicalNode::calculate_collision_shape(){
 	std::shared_ptr<gua::physics::CollisionShapeNode> csn (new gua::physics::CollisionShapeNode(cs_name));
 	csn->data.set_shape(cs_name);
 	collision_shape_ = csn;
-}
+}*/
 
 
 /*void
@@ -215,7 +271,7 @@ PhysicalNode::cs_already_simulated_in(PhysicalNode* pn){
 }*/
 
 
-std::shared_ptr<physics::CollisionShapeNode>
+/*std::shared_ptr<physics::CollisionShapeNode>
 PhysicalNode::get_collision_shape(){
 	if (collision_shape_){return collision_shape_;}
 	else {
@@ -228,12 +284,12 @@ PhysicalNode::get_collision_shape(){
 		calculate_collision_shape();
 		return collision_shape_;
 	}
-}
+}*/
 
-std::shared_ptr<GeometryNode>
+/*std::shared_ptr<GeometryNode>
 PhysicalNode::get_geometry()const{
 	return geometry_;
-}
+}*/
 
 std::shared_ptr<physics::RigidBodyNode>
 PhysicalNode::get_rigid_body()const{
@@ -356,7 +412,7 @@ PhysicalNode::scale(float x, float y, float z){
 		set_scale_ = false;
 	}
 	
-	geometry_->scale(x,y,z);
+	//geometry_->scale(x,y,z);//TODO
 
 	if(was_collidable){
 		simulate(true,false);
@@ -380,7 +436,7 @@ PhysicalNode::rotate(float angle, float x, float y, float z){
 		simulate(false,false);
 	}
 	
-	geometry_->rotate(angle, x, y, z);
+	//geometry_->rotate(angle, x, y, z);//TODO
 
 	if(was_collidable){
 		simulate(true,false);
@@ -404,7 +460,7 @@ PhysicalNode::translate(float x, float y, float z){
 		simulate(false,false);
 	}
 	
-	geometry_->translate(x,y,z);
+	//geometry_->translate(x,y,z);//TODO
 
 	if(was_collidable){
 		simulate(true,false);
