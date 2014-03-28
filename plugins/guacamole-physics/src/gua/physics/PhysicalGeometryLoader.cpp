@@ -46,8 +46,8 @@ PhysicalGeometryLoader::visit(GeometryNode* geom){
 	parent->add_child(shared_node);
 
 	//start simulation in example later
-	physical_node->translate(0.0,0.0,-10.0);
-	physical_node->simulate(true);
+	//physical_node->translate(0.0,0.0,-10.0);
+	//physical_node->simulate(true);
 	
 
 	for(auto child : geom->get_children()){
@@ -72,7 +72,7 @@ PhysicalGeometryLoader::visit(Node* node){
 	}
 }
 
-std::shared_ptr<Node>
+std::shared_ptr<PhysicalNode>
 PhysicalGeometryLoader::create_physical_objects_from_file(
 						  std::string const& node_name,
                           std::string const& file_name,
@@ -92,7 +92,7 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 				//auto phys_node2 = new gua::PhysicalNode(geometry,&physics,csn2);
 				auto physical_node = new gua::PhysicalNode(geometry,physics_,nullptr,mass);
 
-				std::shared_ptr<Node>return_node(physical_node);
+				std::shared_ptr<PhysicalNode>return_node(physical_node);
 				
 				
 				return return_node;
@@ -112,7 +112,11 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 				child->accept(*this);
 			}
 
-			return node;
+			auto physical_node = new gua::PhysicalNode(node,physics_,nullptr,mass);
+
+			//return node;
+			std::shared_ptr<PhysicalNode>return_node(physical_node); 
+			return return_node;
 		}
 
 	}

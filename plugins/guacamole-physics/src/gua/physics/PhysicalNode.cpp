@@ -129,7 +129,6 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 				    math::vec3 y_vec(geom_world[4], geom_world[5], geom_world[6]);
 				    math::vec3 z_vec(geom_world[8], geom_world[9], geom_world[10]);
 				    auto scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
-					rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,geom_world * scm::math::inverse(scm::math::make_scale(scale)));
 
 					for(auto child : get_children()){
 						auto child_world = child->get_world_transform();
@@ -137,9 +136,16 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 					}
 					geom->set_transform(math::mat4::identity());
 					set_transform(geom_world);
+					rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,geom_world * scm::math::inverse(scm::math::make_scale(scale)));
 
 				}
 				else{
+
+					for(auto child : get_children()){
+						auto child_world = child->get_world_transform();
+						child->set_transform(child_world);
+					}
+
 					rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,math::mat4::identity());
 					set_transform(math::mat4::identity());
 				}

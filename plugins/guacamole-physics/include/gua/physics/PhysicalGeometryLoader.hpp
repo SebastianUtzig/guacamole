@@ -16,11 +16,11 @@ class PhysicalGeometryLoader : public NodeVisitor{
   	virtual ~PhysicalGeometryLoader();
 
 
-    void                    visit(GeometryNode*);
+    void                          visit(GeometryNode*);
 
-    void                    visit(Node*);
+    void                          visit(Node*);
 
-    std::shared_ptr<Node>   create_physical_objects_from_file
+    std::shared_ptr<PhysicalNode> create_physical_objects_from_file
                             (std::string const& node_name,
                             std::string const& file_name,
                             std::string const& fallback_material,
@@ -34,7 +34,7 @@ class PhysicalGeometryLoader : public NodeVisitor{
     physics::Physics* physics_;
     float             mass_;
 
-    GeometryLoader  loader_;
+    GeometryLoader    loader_;
 
 
 
