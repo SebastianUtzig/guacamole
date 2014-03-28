@@ -37,6 +37,8 @@ PhysicalNode::PhysicalNode(
 bool
 PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
+	//std::cout<<"00000"<<std::endl;
+
 	if(b_simulate){
 
 		if(rigid_body_==nullptr){
@@ -66,7 +68,7 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			
 			cs_collector_->check(this);
 
-			std::cout<<"1111"<<std::endl;
+		//	std::cout<<"1111"<<std::endl;
 
 			//create physics subgraph: (root - rb - cs)
 			///root:
@@ -77,29 +79,37 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			//rigidbody just consist of center of mass translation - offset in collisionshape and geometry
 			if(mass_ != 0){
 
-				std::cout<<"2222"<<std::endl;
+			//	std::cout<<"2222"<<std::endl;
 
 				math::vec3 com = cs_collector_->get_center_of_mass();
 
-				std::cout<<"3333"<<std::endl;
+			//	std::cout<<"3333"<<std::endl;
+
+
+				for(auto child : get_children()){
+					auto child_world = child->get_world_transform();
+				//	std::cout<<"child world before com: "<<child_world<<std::endl;
+					child->set_transform(scm::math::inverse(scm::math::make_translation(com)) * child_world);
+				}
+				/////
+				set_transform(scm::math::make_translation(com));
+
 
 
 				rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com));
 
-				std::cout<<"4444"<<std::endl;
+			//	std::cout<<"4444"<<std::endl;
 				
 
 
 				//new:
-				for(auto child : get_children()){
-					auto child_world = child->get_world_transform();
-					child->set_transform(scm::math::inverse(scm::math::make_translation(com)) * child_world);
-				}
-				/////
 
-				std::cout<<"5555"<<std::endl;
+			//	std::cout<<"5555"<<std::endl;
 
-				set_transform(scm::math::make_translation(com));
+
+
+
+			//	std::cout<<"child world after com inverse: "<<child_->get_world_transform()<<std::endl;
 
 		//		collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
 
@@ -108,7 +118,7 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			}
 			else{//static object can hold all transformations of upper geometry
 
-				std::cout<<"11111b"<<std::endl;
+			//	std::cout<<"11111b"<<std::endl;
 
 				//new:
 				auto geom = std::dynamic_pointer_cast<GeometryNode>(child_);
@@ -168,9 +178,12 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 		}
 	}
 	else if(rigid_body_){
+
+		//std::cout<<"SIMULATE FALSE!!!!!!!!!!!!!!!"<<std::endl;
+
 		physics_->remove_rigid_body(rigid_body_);
 
-		//set all transformations into geometry again
+
 		math::mat4 parent_trans;
 		if(get_parent()){
 			parent_trans = get_parent()->get_world_transform();
@@ -227,13 +240,16 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 
 math::mat4
 PhysicalNode::get_world_transform()const{
+	//std::cout<<"get world transform of: "<<get_path()<<std::endl;
 	if(!is_simulating()){
 		if (parent_){
 	        return parent_->get_world_transform() * get_transform();
 	    }
+	    //std::cout<<"I have no parent!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1"<<std::endl;
 	    return get_transform();
 	}
 	else{
+		//std::cout<<"Im simulating!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
     	return get_transform();
 	}
 }
@@ -413,6 +429,8 @@ PhysicalNode::scale(float x, float y, float z){
 	}
 	
 	//geometry_->scale(x,y,z);//TODO
+	set_transform(scm::math::make_scale(x, y, z) * get_transform());
+	set_dirty();
 
 	if(was_collidable){
 		simulate(true,false);
@@ -437,6 +455,9 @@ PhysicalNode::rotate(float angle, float x, float y, float z){
 	}
 	
 	//geometry_->rotate(angle, x, y, z);//TODO
+	
+	set_transform(scm::math::make_rotation(angle, x, y, z) * get_transform());
+	set_dirty();
 
 	if(was_collidable){
 		simulate(true,false);
@@ -461,6 +482,8 @@ PhysicalNode::translate(float x, float y, float z){
 	}
 	
 	//geometry_->translate(x,y,z);//TODO
+	set_transform(scm::math::make_translation(x, y, z) * get_transform());
+	set_dirty();
 
 	if(was_collidable){
 		simulate(true,false);

@@ -65,7 +65,7 @@ CollisionShapeCollector::visit(Node* node){
 	}
 	else{
 		auto list = node->get_children();
-		for(auto child : node->get_children()){
+		for(auto child : list){
 			child->accept(*this);
 		}
 	}
@@ -78,7 +78,11 @@ CollisionShapeCollector::visit(GeometryNode* geom){
 	auto phys_node =dynamic_cast<PhysicalNode*>(geom->get_parent());
 	if(phys_node){
 
+	//	std::cout<<"will check world transform of : "<<geom->get_path()<<std::endl;
+
 		auto geom_world = geom->get_world_transform();
+
+	//	std::cout<<"found geom with world: "<<geom_world<<std::endl;
 
 		//getScale solution from avango-gua
 		math::vec3 x_vec(geom_world[0], geom_world[1], geom_world[2]);
@@ -112,7 +116,11 @@ CollisionShapeCollector::visit(GeometryNode* geom){
 		collected_collision_shapes_.push_back(std::make_tuple(csn,geom_world,phys_node->get_mass()));
 
 	}
-	std::cout<<"after cs calculation"<<std::endl;
+
+	for(auto child : geom->get_children()){
+		child->accept(*this);
+	}
+//	std::cout<<"after cs calculation"<<std::endl;
 
 }
 
