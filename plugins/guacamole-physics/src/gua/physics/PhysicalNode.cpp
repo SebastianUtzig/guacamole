@@ -85,10 +85,12 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 			//	std::cout<<"3333"<<std::endl;
 
-
+				std::cout<<"in: "<<get_path()<<std::endl;
+				std::cout<<"child world before com: "<<child_->get_world_transform()<<std::endl;
+				
 				for(auto child : get_children()){
 					auto child_world = child->get_world_transform();
-				//	std::cout<<"child world before com: "<<child_world<<std::endl;
+					std::cout<<"child world before com: "<<child_world<<std::endl;
 					child->set_transform(scm::math::inverse(scm::math::make_translation(com)) * child_world);
 				}
 				/////
@@ -109,7 +111,7 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 
 
-			//	std::cout<<"child world after com inverse: "<<child_->get_world_transform()<<std::endl;
+				std::cout<<"child world after com inverse: "<<child_->get_world_transform()<<std::endl;
 
 		//		collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
 
@@ -187,7 +189,6 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 		//std::cout<<"SIMULATE FALSE!!!!!!!!!!!!!!!"<<std::endl;
 
-		physics_->remove_rigid_body(rigid_body_);
 
 
 		math::mat4 parent_trans;
@@ -208,6 +209,9 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 		///////
 
 		set_transform(math::mat4::identity());
+
+		
+		physics_->remove_rigid_body(rigid_body_);
 
 		rigid_body_.reset();
 
