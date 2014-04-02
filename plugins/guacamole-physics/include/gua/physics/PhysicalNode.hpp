@@ -81,7 +81,7 @@ class GUA_DLL PhysicalNode: public TransformNode{
 
     CollisionShapeCollector*                     cs_collector_;
 
-    //PhysicalNode*                                cs_already_simulated_in_;
+    math::vec3                                   center_of_mass_;
 
   	float				                                 mass_;
   	float				                                 friction_;

@@ -22,6 +22,7 @@ PhysicalNode::PhysicalNode(
 			restitution_(restitution),
 			collision_shape_(cs),
 			physics_(physics),
+			center_of_mass_(math::vec3(0.0,0.0,0.0)),
 			//geometry_(geom),
 			child_(child),
 			scale_(math::vec3(1.0,1.0,1.0)),
@@ -81,24 +82,26 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 			//	std::cout<<"2222"<<std::endl;
 
-				math::vec3 com = cs_collector_->get_center_of_mass();
+				center_of_mass_ = cs_collector_->get_center_of_mass();
 
 			//	std::cout<<"3333"<<std::endl;
 
 				std::cout<<"in: "<<get_path()<<std::endl;
-				std::cout<<"child world before com: "<<child_->get_world_transform()<<std::endl;
+				std::cout<<"child world before center_of_mass_: "<<child_->get_world_transform()<<std::endl;
 				
 				for(auto child : get_children()){
 					auto child_world = child->get_world_transform();
-					std::cout<<"child world before com: "<<child_world<<std::endl;
-					child->set_transform(scm::math::inverse(scm::math::make_translation(com)) * child_world);
+					std::cout<<"child world before center_of_mass_: "<<child_world<<std::endl;
+				//	child->set_transform(scm::math::inverse(scm::math::make_translation(center_of_mass_)) * child_world);//old
+					child->set_transform(child_world);
 				}
 				/////
-				set_transform(scm::math::make_translation(com));
+		//		set_transform(scm::math::make_translation(center_of_mass_));//old
+				set_transform(math::mat4::identity());
 
 
 
-				rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(com));
+				rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(center_of_mass_));
 
 			//	std::cout<<"4444"<<std::endl;
 				
@@ -111,11 +114,11 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 
 
-				std::cout<<"child world after com inverse: "<<child_->get_world_transform()<<std::endl;
+				std::cout<<"child world after center_of_mass_ inverse: "<<child_->get_world_transform()<<std::endl;
 
 		//		collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
 
-		//		geometry_->set_transform(scm::math::inverse(scm::math::make_translation(com)) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
+		//		geometry_->set_transform(scm::math::inverse(scm::math::make_translation(center_of_mass_)) * geom_world_);//* scm::math::inverse(scm::math::make_scale(scale_)));// * scm::math::make_scale(scale_));
 
 			}
 			else{//static object can hold all transformations of upper geometry
@@ -240,7 +243,8 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 	//		set_transform(transform * scm::math::make_scale(scale_));
 		}
 		else{
-			set_transform(transform);
+		//	set_transform(transform);//old
+			set_transform(transform * scm::math::inverse(scm::math::make_translation(center_of_mass_)));
 		}
 	}
 	else{
