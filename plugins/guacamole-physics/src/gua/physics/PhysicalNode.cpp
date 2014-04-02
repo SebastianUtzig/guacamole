@@ -69,7 +69,6 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			
 			cs_collector_->check(this);
 
-		//	std::cout<<"1111"<<std::endl;
 
 			//create physics subgraph: (root - rb - cs)
 			///root:
@@ -80,18 +79,11 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 			//rigidbody just consist of center of mass translation - offset in collisionshape and geometry
 			if(mass_ != 0){
 
-			//	std::cout<<"2222"<<std::endl;
-
 				center_of_mass_ = cs_collector_->get_center_of_mass();
 
-			//	std::cout<<"3333"<<std::endl;
-
-				std::cout<<"in: "<<get_path()<<std::endl;
-				std::cout<<"child world before center_of_mass_: "<<child_->get_world_transform()<<std::endl;
 				
 				for(auto child : get_children()){
 					auto child_world = child->get_world_transform();
-					std::cout<<"child world before center_of_mass_: "<<child_world<<std::endl;
 				//	child->set_transform(scm::math::inverse(scm::math::make_translation(center_of_mass_)) * child_world);//old
 					child->set_transform(child_world);
 				}
@@ -103,18 +95,6 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 				rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,scm::math::make_translation(center_of_mass_));
 
-			//	std::cout<<"4444"<<std::endl;
-				
-
-
-				//new:
-
-			//	std::cout<<"5555"<<std::endl;
-
-
-
-
-				std::cout<<"child world after center_of_mass_ inverse: "<<child_->get_world_transform()<<std::endl;
 
 		//		collision_shape_->set_transform(scm::math::inverse(rigid_body_->get_transform()) * geom_world_* scm::math::inverse(scm::math::make_scale(scale_)));
 
@@ -122,8 +102,6 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 			}
 			else{//static object can hold all transformations of upper geometry
-
-			//	std::cout<<"11111b"<<std::endl;
 
 				//new:
 				auto geom = std::dynamic_pointer_cast<GeometryNode>(child_);
@@ -137,10 +115,12 @@ PhysicalNode::simulate(bool b_simulate,bool warn_parent){
 
 					for(auto child : get_children()){
 						auto child_world = child->get_world_transform();
-						child->set_transform(scm::math::inverse(geom_world) * child_world);
+						//child->set_transform(scm::math::inverse(geom_world) * child_world)//old
+						child->set_transform(child_world);
 					}
-					geom->set_transform(math::mat4::identity());
-					set_transform(geom_world);
+					//geom->set_transform(math::mat4::identity());
+					//set_transform(geom_world);
+					set_transform(math::mat4::identity());
 					rigid_body_= std::make_shared<physics::RigidBodyNode>(get_name()+"_rb_",mass_,friction_,restitution_,geom_world * scm::math::inverse(scm::math::make_scale(scale)));
 
 				}
@@ -240,10 +220,11 @@ void
 PhysicalNode::set_world_transform(math::mat4 const& transform){
 	if(is_simulating()){
 		if(mass_ == 0){
-	//		set_transform(transform * scm::math::make_scale(scale_));
+			//set_transform(transform * scm::math::make_scale(scale_));
+			set_transform(math::mat4::identity());//doesnt make sense, but simulation will stop without it (???)
 		}
 		else{
-		//	set_transform(transform);//old
+			//set_transform(transform);//old
 			set_transform(transform * scm::math::inverse(scm::math::make_translation(center_of_mass_)));
 		}
 	}
@@ -254,16 +235,13 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 
 math::mat4
 PhysicalNode::get_world_transform()const{
-	//std::cout<<"get world transform of: "<<get_path()<<std::endl;
 	if(!is_simulating()){
 		if (parent_){
 	        return parent_->get_world_transform() * get_transform();
 	    }
-	    //std::cout<<"I have no parent!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1"<<std::endl;
 	    return get_transform();
 	}
 	else{
-		//std::cout<<"Im simulating!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<std::endl;
     	return get_transform();
 	}
 }
@@ -315,6 +293,11 @@ PhysicalNode::get_collision_shape(){
 		return collision_shape_;
 	}
 }*/
+std::shared_ptr<physics::CollisionShapeNode>
+PhysicalNode::get_collision_shape(){
+	return collision_shape_;
+}
+
 
 /*std::shared_ptr<GeometryNode>
 PhysicalNode::get_geometry()const{
@@ -426,12 +409,12 @@ PhysicalNode::accept(NodeVisitor& visitor) {
 
 void
 PhysicalNode::scale(float x, float y, float z){
-	bool was_collidable = false;
+	bool was_simulating = false;
 	math::vec3 saved_angular_vel;
 	math::vec3 saved_linear_vel;
 	
 	if(is_simulating()){
-		was_collidable = true;
+		was_simulating = true;
 
 		saved_angular_vel = rigid_body_->angular_velocity();
 		saved_linear_vel = rigid_body_->linear_velocity();
@@ -446,7 +429,7 @@ PhysicalNode::scale(float x, float y, float z){
 	set_transform(scm::math::make_scale(x, y, z) * get_transform());
 	set_dirty();
 
-	if(was_collidable){
+	if(was_simulating){
 		simulate(true,false);
 		rigid_body_->set_angular_velocity(saved_angular_vel);
 		rigid_body_->set_linear_velocity(saved_linear_vel);
@@ -455,12 +438,12 @@ PhysicalNode::scale(float x, float y, float z){
 
 void
 PhysicalNode::rotate(float angle, float x, float y, float z){
-	bool was_collidable = false;
+	bool was_simulating = false;
 	math::vec3 saved_angular_vel;
 	math::vec3 saved_linear_vel;
 
 	if(is_simulating()){
-		was_collidable = true;
+		was_simulating = true;
 
 		saved_angular_vel = rigid_body_->angular_velocity();
 		saved_linear_vel = rigid_body_->linear_velocity();
@@ -473,7 +456,7 @@ PhysicalNode::rotate(float angle, float x, float y, float z){
 	set_transform(scm::math::make_rotation(angle, x, y, z) * get_transform());
 	set_dirty();
 
-	if(was_collidable){
+	if(was_simulating){
 		simulate(true,false);
 		rigid_body_->set_angular_velocity(saved_angular_vel);
 		rigid_body_->set_linear_velocity(saved_linear_vel);
@@ -482,12 +465,12 @@ PhysicalNode::rotate(float angle, float x, float y, float z){
 
 void
 PhysicalNode::translate(float x, float y, float z){
-	bool was_collidable = false;
+	bool was_simulating = false;
 	math::vec3 saved_angular_vel;
 	math::vec3 saved_linear_vel;
 
 	if(is_simulating()){
-		was_collidable = true;
+		was_simulating = true;
 
 		saved_angular_vel = rigid_body_->angular_velocity();
 		saved_linear_vel = rigid_body_->linear_velocity();
@@ -499,7 +482,7 @@ PhysicalNode::translate(float x, float y, float z){
 	set_transform(scm::math::make_translation(x, y, z) * get_transform());
 	set_dirty();
 
-	if(was_collidable){
+	if(was_simulating){
 		simulate(true,false);
 		rigid_body_->set_angular_velocity(saved_angular_vel);
 		rigid_body_->set_linear_velocity(saved_linear_vel);

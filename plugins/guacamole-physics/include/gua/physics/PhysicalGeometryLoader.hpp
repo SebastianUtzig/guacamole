@@ -24,7 +24,8 @@ class PhysicalGeometryLoader : public NodeVisitor{
                             (std::string const& node_name,
                             std::string const& file_name,
                             std::string const& fallback_material,
-                            float mass = 1.0
+                            float mass = 1.0,
+                            std::shared_ptr<physics::CollisionShapeNode> const& collision_shape = nullptr
                             );
 
 
@@ -35,6 +36,8 @@ class PhysicalGeometryLoader : public NodeVisitor{
     float             mass_;
 
     GeometryLoader    loader_;
+
+    //std::list<std::shared_ptr<GeometryNode>> loaded_geometries_;
 
 
 

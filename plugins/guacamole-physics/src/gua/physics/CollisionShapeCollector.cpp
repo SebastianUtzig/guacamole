@@ -78,49 +78,68 @@ CollisionShapeCollector::visit(GeometryNode* geom){
 	auto phys_node =dynamic_cast<PhysicalNode*>(geom->get_parent());
 	if(phys_node){
 
-	//	std::cout<<"will check world transform of : "<<geom->get_path()<<std::endl;
-
 		auto geom_world = geom->get_world_transform();
+		
+		std::shared_ptr<gua::physics::CollisionShapeNode> csn_shared = phys_node->get_collision_shape();
 
-	//	std::cout<<"found geom with world: "<<geom_world<<std::endl;
+		if(!csn_shared){
 
-		//getScale solution from avango-gua
-		math::vec3 x_vec(geom_world[0], geom_world[1], geom_world[2]);
-		math::vec3 y_vec(geom_world[4], geom_world[5], geom_world[6]);
-		math::vec3 z_vec(geom_world[8], geom_world[9], geom_world[10]);
-		auto scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
+		//	std::cout<<"will check world transform of : "<<geom->get_path()<<std::endl;
 
-		//std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
 
-		std::string cs_name = geom->get_name()
-						+"_automatic_collision_shape_"
-						+gua::string_utils::to_string(scale.x)+"_"
-						+gua::string_utils::to_string(scale.y)+"_"
-						+gua::string_utils::to_string(scale.z);
+		//	std::cout<<"found geom with world: "<<geom_world<<std::endl;
 
-		auto existing_cs = gua::physics::CollisionShapeDatabase::instance()->lookup(cs_name);
-		if(existing_cs == nullptr){
+			//getScale solution from avango-gua
+			math::vec3 x_vec(geom_world[0], geom_world[1], geom_world[2]);
+			math::vec3 y_vec(geom_world[4], geom_world[5], geom_world[6]);
+			math::vec3 z_vec(geom_world[8], geom_world[9], geom_world[10]);
+			auto scale = math::vec3(scm::math::length(x_vec), scm::math::length(y_vec), scm::math::length(z_vec));
 
-			std::vector<std::string> geometry_list = std::vector<std::string>();
-			geometry_list.push_back(geom->data.get_geometry());
-			auto cs = gua::physics::TriangleMeshShape::FromGeometry(geometry_list, true, true);
-			cs->set_scaling(scale);
-			gua::physics::CollisionShapeDatabase::add_shape(cs_name, cs);
+			//std::cout<<"Attention: Trying to build CollisionShape automatically!!!"<<std::endl;
 
-		}	
-		std::shared_ptr<gua::physics::CollisionShapeNode> csn (new gua::physics::CollisionShapeNode(cs_name));
-		csn->data.set_shape(cs_name);
+			std::string cs_name = geom->get_name()
+							+"_automatic_collision_shape_"
+							+gua::string_utils::to_string(scale.x)+"_"
+							+gua::string_utils::to_string(scale.y)+"_"
+							+gua::string_utils::to_string(scale.z);
+
+
+
+			auto existing_cs = gua::physics::CollisionShapeDatabase::instance()->lookup(cs_name);
+
+			if(existing_cs == nullptr){
+
+				std::vector<std::string> geometry_list = std::vector<std::string>();
+
+				geometry_list.push_back(geom->data.get_geometry());
+
+				auto cs = gua::physics::TriangleMeshShape::FromGeometry(geometry_list, true, true);
+
+
+				cs->set_scaling(scale);
+
+
+				gua::physics::CollisionShapeDatabase::add_shape(cs_name, cs);
+
+			}
+			std::shared_ptr<gua::physics::CollisionShapeNode> csn (new gua::physics::CollisionShapeNode(cs_name));
+
+			csn->data.set_shape(cs_name);
+
+			csn_shared = csn;
+		}
+
 
 		//collision_shape is csn;
 
-		collected_collision_shapes_.push_back(std::make_tuple(csn,geom_world,phys_node->get_mass()));
+		collected_collision_shapes_.push_back(std::make_tuple(csn_shared,geom_world,phys_node->get_mass()));
+
+
 
 	}
-
 	for(auto child : geom->get_children()){
 		child->accept(*this);
 	}
-//	std::cout<<"after cs calculation"<<std::endl;
 
 }
 

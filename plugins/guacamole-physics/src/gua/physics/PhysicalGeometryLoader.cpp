@@ -7,6 +7,7 @@ namespace gua{
 
 PhysicalGeometryLoader::PhysicalGeometryLoader(physics::Physics * ph)
 		:physics_(ph),
+		//loaded_geometries_(),
 		 mass_(1.0){}
 
 PhysicalGeometryLoader::~PhysicalGeometryLoader(){}
@@ -21,6 +22,8 @@ PhysicalGeometryLoader::visit(GeometryNode* geom){
 	auto parent = geom->get_parent();
 
 	std::shared_ptr<GeometryNode>shared_geom(geom);
+
+	//loaded_geometries_.push_back(shared_geom);
 
 	//parent->clear_children();
 	//parent->remove_child(shared_geom);
@@ -77,7 +80,8 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 						  std::string const& node_name,
                           std::string const& file_name,
                           std::string const& fallback_material,
-                          float mass
+                          float mass,
+                          std::shared_ptr<physics::CollisionShapeNode> const& collision_shape
                           )
 {
 	auto node = loader_.create_geometry_from_file(node_name, file_name, fallback_material);
@@ -90,7 +94,7 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 			if(geometry){
 				//geometry->data.set_geometry("");
 				//auto phys_node2 = new gua::PhysicalNode(geometry,&physics,csn2);
-				auto physical_node = new gua::PhysicalNode(geometry,physics_,nullptr,mass);
+				auto physical_node = new gua::PhysicalNode(geometry,physics_,collision_shape,mass);
 
 				std::shared_ptr<PhysicalNode>return_node(physical_node);
 				
@@ -112,7 +116,7 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 				child->accept(*this);
 			}
 
-			auto physical_node = new gua::PhysicalNode(node,physics_,nullptr,mass);
+			auto physical_node = new gua::PhysicalNode(node,physics_,collision_shape,mass);
 
 			//return node;
 			std::shared_ptr<PhysicalNode>return_node(physical_node); 

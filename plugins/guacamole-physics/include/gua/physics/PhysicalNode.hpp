@@ -35,7 +35,7 @@ class GUA_DLL PhysicalNode: public TransformNode{
     
     //void cs_already_simulated_in(PhysicalNode*);
 
-//    std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape();
+    std::shared_ptr<physics::CollisionShapeNode>  get_collision_shape();
 //    std::shared_ptr<GeometryNode>  get_geometry()const;
     std::shared_ptr<physics::RigidBodyNode>  get_rigid_body()const;
 
