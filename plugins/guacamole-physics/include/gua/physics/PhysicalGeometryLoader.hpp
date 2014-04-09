@@ -37,8 +37,6 @@ class PhysicalGeometryLoader : public NodeVisitor{
 
     GeometryLoader    loader_;
 
-    //std::list<std::shared_ptr<GeometryNode>> loaded_geometries_;
-
 
 
 

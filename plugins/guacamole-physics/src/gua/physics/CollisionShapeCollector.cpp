@@ -13,8 +13,6 @@ CollisionShapeCollector::~CollisionShapeCollector(){
 	while(!collected_collision_shapes_.empty()){
 		collected_collision_shapes_.pop_back();
 	}
-
-
 }
 
 
@@ -32,21 +30,6 @@ CollisionShapeCollector::check(PhysicalNode* pn){
 void
 CollisionShapeCollector::visit(PhysicalNode* node){
 	if(!node->is_simulating()){
-		/*auto cs = node->get_collision_shape();
-		if(cs){	
-			
-			auto transform = node->get_geometry()->get_world_transform();
-
-			collected_collision_shapes_.push_back(std::make_tuple(cs,transform,node->get_mass()));
-
-		 	//node->cs_already_simulated_in(current_root_);
-		}
-		else{
-			std::cout<<"no cs :(((("<<std::endl;
-		}
-		for(auto const& child : node->get_children()){
-			child->accept(*this);
-		}*/
 		for(auto const& child : node->get_children()){
 			child->accept(*this);
 		}
@@ -56,9 +39,6 @@ CollisionShapeCollector::visit(PhysicalNode* node){
 
 void
 CollisionShapeCollector::visit(Node* node){
-	/*for(auto child : node->get_children()){
-		child->accept(*this);
-	}*/
 	auto geom = dynamic_cast<GeometryNode*>(node);
 	if(geom){
 		visit(geom);
@@ -83,11 +63,6 @@ CollisionShapeCollector::visit(GeometryNode* geom){
 		std::shared_ptr<gua::physics::CollisionShapeNode> csn_shared = phys_node->get_collision_shape();
 
 		if(!csn_shared){
-
-		//	std::cout<<"will check world transform of : "<<geom->get_path()<<std::endl;
-
-
-		//	std::cout<<"found geom with world: "<<geom_world<<std::endl;
 
 			//getScale solution from avango-gua
 			math::vec3 x_vec(geom_world[0], geom_world[1], geom_world[2]);
@@ -129,9 +104,6 @@ CollisionShapeCollector::visit(GeometryNode* geom){
 			csn_shared = csn;
 		}
 
-
-		//collision_shape is csn;
-
 		collected_collision_shapes_.push_back(std::make_tuple(csn_shared,geom_world,phys_node->get_mass()));
 
 
@@ -167,7 +139,7 @@ CollisionShapeCollector::get_center_of_mass()const{
 
 void
 CollisionShapeCollector::add_shapes_to_rb(physics::RigidBodyNode* rb){
-	//std::cout<<"collected_collision_shapes_ length: "<<collected_collision_shapes_.size()<<std::endl;
+
 	for(auto cs : collected_collision_shapes_){
 
 		auto cs_world = std::get<1>(cs);

@@ -7,7 +7,6 @@ namespace gua{
 
 PhysicalGeometryLoader::PhysicalGeometryLoader(physics::Physics * ph)
 		:physics_(ph),
-		//loaded_geometries_(),
 		 mass_(1.0){}
 
 PhysicalGeometryLoader::~PhysicalGeometryLoader(){}
@@ -15,43 +14,28 @@ PhysicalGeometryLoader::~PhysicalGeometryLoader(){}
 
 void
 PhysicalGeometryLoader::visit(GeometryNode* geom){
-	
-
 
 	//put physical node in between geom and parent
 	auto parent = geom->get_parent();
 
 	std::shared_ptr<GeometryNode>shared_geom(geom);
 
-	//loaded_geometries_.push_back(shared_geom);
-
-	//parent->clear_children();
-	//parent->remove_child(shared_geom);
 	auto children = parent->get_children();
 	for (auto c(children.begin()); c != children.end(); ++c) {
         if (*c == shared_geom) {
             children.erase(c);
             //shared_geom->parent_ = nullptr;
             //set_dirty();
-
             break;
         }
     }
 
 
 	auto physical_node = new gua::PhysicalNode(shared_geom,physics_,nullptr,mass_);
-//	physical_node->scale(0.008,0.008,0.008);
-//	physical_node->rotate(-90.0,1,0,0);
-
 
 	std::shared_ptr<Node>shared_node(physical_node);
 
 	parent->add_child(shared_node);
-
-	//start simulation in example later
-	//physical_node->translate(0.0,0.0,-10.0);
-	//physical_node->simulate(true);
-	
 
 	for(auto child : geom->get_children()){
 		child->accept(*this);
@@ -92,12 +76,10 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 
 			std::shared_ptr<gua::GeometryNode> geometry = std::dynamic_pointer_cast<gua::GeometryNode>(node);
 			if(geometry){
-				//geometry->data.set_geometry("");
-				//auto phys_node2 = new gua::PhysicalNode(geometry,&physics,csn2);
+
 				auto physical_node = new gua::PhysicalNode(geometry,physics_,collision_shape,mass);
 
 				std::shared_ptr<PhysicalNode>return_node(physical_node);
-				
 				
 				return return_node;
 			}
@@ -118,7 +100,6 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 
 			auto physical_node = new gua::PhysicalNode(node,physics_,collision_shape,mass);
 
-			//return node;
 			std::shared_ptr<PhysicalNode>return_node(physical_node); 
 			return return_node;
 		}
@@ -126,8 +107,6 @@ PhysicalGeometryLoader::create_physical_objects_from_file(
 	}
 
 }
-
-
 
 
 
