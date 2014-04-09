@@ -25,6 +25,21 @@ PhysicalNode::PhysicalNode(
 			set_scale_(false),
 			cs_collector_(new CollisionShapeCollector())
 		{
+			if(child->get_parent()){
+				//put new physical node in between child and his parent
+
+				auto parent = child->get_parent();
+
+				auto children = parent->get_children();
+				for (auto c(children.begin()); c != children.end(); ++c) {
+			        if (*c == child) {
+			            children.erase(c);
+			            //shared_geom->parent_ = nullptr;
+			            //set_dirty();
+			            break;
+			        }
+			    }
+			}
 			add_child(child);
 		}
 
