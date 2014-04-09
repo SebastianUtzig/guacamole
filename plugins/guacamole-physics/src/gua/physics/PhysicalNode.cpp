@@ -173,7 +173,7 @@ PhysicalNode::set_world_transform(math::mat4 const& transform){
 		}
 	}
 	else{
-		world_transform_ = transform;//sinnvoll?
+		world_transform_ = transform;
 	}
 }
 
@@ -312,8 +312,8 @@ PhysicalNode::scale(float x, float y, float z){
 		saved_linear_vel = rigid_body_->linear_velocity();
 
 		simulate(false,false);
-		collision_shape_.reset();
-		collision_shape_ = nullptr;
+		//collision_shape_.reset();
+		//collision_shape_ = nullptr;
 		set_scale_ = false;
 	}
 	
